@@ -1,11 +1,12 @@
 #   -*- coding: utf-8 -*-
 import re
 import logging
-
-from .terminal import Terminal
-from mpcurses import MPcontroller
 from queue import Empty
 from time import sleep
+
+from mpcurses import MPcontroller
+
+from .terminal import Terminal
 
 logger = logging.getLogger(__name__)
 

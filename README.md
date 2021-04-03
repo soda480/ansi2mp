@@ -1,6 +1,6 @@
 [![GitHub Workflow Status](https://github.com/soda480/mp4ansi/workflows/build/badge.svg)](https://github.com/soda480/mp4ansi/actions)
 [![Code Coverage](https://codecov.io/gh/soda480/mp4ansi/branch/master/graph/badge.svg)](https://codecov.io/gh/soda480/mp4ansi)
-[![Code Grade](https://www.code-inspector.com/project/12270/status/svg)](https://frontend.code-inspector.com/project/12270/dashboard)
+[![Code Grade](https://www.code-inspector.com/project/20694/status/svg)](https://frontend.code-inspector.com/project/20694/dashboard)
 [![PyPI version](https://badge.fury.io/py/mp4ansi.svg)](https://badge.fury.io/py/mp4ansi)
 
 # mp4ansi #
@@ -16,7 +16,7 @@ pip install mp4ansi
 
 ### Examples ###
 
-To run the samples below you need to install the essential_generators module `pip install essential_generators`
+To run the samples below you need to install the namegenerator module `pip install namegenerator`
 
 
 A simple mp4ansi example:
@@ -40,7 +40,8 @@ MP4ansi(function=do_something, process_data=process_data, config=config).execute
 Executing the code above results in the following:
 ![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/inline-example.gif)
 
-Serveral [examples](https://github.com/soda480/mp4ansi/tree/master/examples) are included to help introduce the mp4ansi package. Note the functions contained in all the examples are Python functions that have no context about multiprocessing or terminal; they simply perform a function on a given dataset. MP4ansi is a subclass of the [mpcurses](https://pypi.org/project/mpcurses/) mpcontroller, it takes care of setting up the multiprocessing, configuring the curses screen and maintaining the thread-safe queues that are required for inter-process communication.
+Serveral [examples](https://github.com/soda480/mp4ansi/tree/master/examples) are included to help introduce the mp4ansi package. Note the functions contained in all the examples are Python functions that have no context about multiprocessing or terminal; they simply perform a function on a given dataset. MP4ansi is a subclass of the `mpcurses` mpcontroller, it takes care of setting up the multiprocessing, configuring the curses screen and maintaining the thread-safe queues that are required for inter-process communication.  Checkout [mpcurses](https://pypi.org/project/mpcurses/) for more information.
+
 
 #### [example1](https://github.com/soda480/mp4ansi/blob/master/examples/example1.py)
 Execute a function that processes a list of random numbers. Execution is demonstrated as a progress bar, each function works on a different set of numbers thus the total is provided as a regular expression for MP4ansi to determine upon execution.
