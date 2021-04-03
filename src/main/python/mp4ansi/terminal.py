@@ -18,6 +18,7 @@ SHOW_CURSOR = '\x1b[?25h'
 CLEAR_EOL = '\033[K'
 PROGRESS_TICKER = '='
 PROGRESS_BAR_WIDTH = 50
+ID_WIDTH = 30
 
 
 class Terminal():
@@ -86,7 +87,10 @@ class Terminal():
         regex_id = self.config['id_regex']
         match_id = re.match(regex_id, text)
         if match_id:
-            self.terminal[offset]['id'] = match_id.group('value')
+            value = match_id.group('value')
+            if self.config.get('id_justify', False):
+                value = value.rjust(ID_WIDTH)
+            self.terminal[offset]['id'] = value
             self.terminal[offset]['id_matched'] = True
 
     def assign_total(self, offset, text):
@@ -154,7 +158,7 @@ class Terminal():
 
         id_to_display = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{self.terminal[offset]['id']}{Style.RESET_ALL}"
 
-        line = f"[{id_to_display}]: {text_to_display}"
+        line = f"{id_to_display}: {text_to_display}"
         self.terminal[offset]['text'] = text_to_display
         # logger.info(f'line: {line}')
 

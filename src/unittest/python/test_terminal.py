@@ -24,6 +24,7 @@ from mp4ansi.terminal import PROGRESS_BAR_WIDTH
 from mp4ansi.terminal import MAX_CHARS
 from mp4ansi.terminal import HIDE_CURSOR
 from mp4ansi.terminal import SHOW_CURSOR
+from mp4ansi.terminal import ID_WIDTH
 
 import sys
 import logging
@@ -113,6 +114,13 @@ class TestTerminal(unittest.TestCase):
         trmnl.terminal[0]['id_matched'] = False
         trmnl.assign_id(0, 'this is a message')
         self.assertFalse(trmnl.terminal[0]['id_matched'])
+
+    def test__assign_id_Should_Justfiy_When_MatchedAndJustify(self, *patches):
+        config = {'id_regex': r'^id is (?P<value>.*)$', 'id_justify': True}
+        trmnl = Terminal(1, config=config)
+        trmnl.assign_id(0, 'id is abcd123')
+        self.assertEqual(trmnl.terminal[0]['id'], 'abcd123'.rjust(ID_WIDTH))
+        self.assertTrue(trmnl.terminal[0]['id_matched'])
 
     def test__assign_total_Should_SetExpected_When_TotalIsStr(self, *patches):
         config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': '-regex-'}}

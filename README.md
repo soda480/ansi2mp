@@ -7,7 +7,9 @@
 
 A simple ANSI-based terminal emulator that provides multi-processing capabilities. MP4ansi will scale execution of a specified function across multiple background processes, where each process is mapped to specific line on the terminal. As the function executes its log messages will automatically be written to the respective line on the terminal. The number of processes along with the arguments to provide each process is specified as a list of dictionaries. The number of elements in the list will dictate the total number of processes to execute (as well as the number of lines in the terminal). The result of each function is written to the respective dictionary element and can be interogated upon completion.
 
-MPansi also supports representing the function execution as a progress bar, you will need to provide an optional config argument containing a dictionary for how to query for the total and count (via regular expressions), see the [examples](https://github.com/soda480/mp4ansi/tree/master/examples) for more detail. 
+MPansi also supports representing the function execution as a progress bar, you will need to provide an optional config argument containing a dictionary for how to query for the total and count (via regular expressions), see the [examples](https://github.com/soda480/mp4ansi/tree/master/examples) for more detail.
+
+MP4ansi is a subclass of the `mpcurses` mpcontroller, see [mpcurses](https://pypi.org/project/mpcurses/) for more information.
 
 ### Installation ###
 ```bash
@@ -16,8 +18,7 @@ pip install mp4ansi
 
 ### Examples ###
 
-To run the samples below you need to install the namegenerator module `pip install namegenerator`
-
+To run the samples below you need to install the namegenerator module `pip install namegenerator`.
 
 A simple mp4ansi example:
 ```python
@@ -25,39 +26,60 @@ from mp4ansi import MP4ansi
 import uuid, random, namegenerator, time, logging
 logger = logging.getLogger(__name__)
 
-def do_something(*args):
-    myid = str(uuid.uuid4()).split('-')[-1]
-    logger.debug(f'myid is {myid}')
-    for _ in range(random.randint(200, 400)):
-        logger.debug(f'{namegenerator.gen()} and {namegenerator.gen()}')
+def do_work(*args):
+    total = random.randint(400, 600)
+    logger.debug(f'processing total of {total}')
+    for _ in range(total):
+        logger.debug(f'processed {namegenerator.gen()}')
         time.sleep(.01)
+    return total
 
-process_data = [{} for item in range(24)]
-config = {'id_regex': r'^myid is (?P<value>.*)$'}
-MP4ansi(function=do_something, process_data=process_data, config=config).execute()
+process_data = [{} for item in range(8)]
+print('Procesing items...')
+MP4ansi(function=do_work, process_data=process_data).execute()
+print(f"Total items processed {sum([item['result'] for item in process_data])}")
 ```
 
 Executing the code above results in the following:
-![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/inline-example.gif)
+![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/inline-example1.gif)
 
-Serveral [examples](https://github.com/soda480/mp4ansi/tree/master/examples) are included to help introduce the mp4ansi package. Note the functions contained in all the examples are Python functions that have no context about multiprocessing or terminal; they simply perform a function on a given dataset. MP4ansi is a subclass of the `mpcurses` mpcontroller, it takes care of setting up the multiprocessing, configuring the curses screen and maintaining the thread-safe queues that are required for inter-process communication. See [mpcurses](https://pypi.org/project/mpcurses/) for more information.
+**Note** the function being executed `do_work` has no context about multiprocessing or the terminal; it simply perform a function on a given dataset. MP4ansi takes care of setting up the multiprocessing, setting up the terminal, and maintaining the thread-safe queues that are required for inter-process communication.
 
+Let's update the example to add an identifer for each process and to show execution as a progress bar. To do this we need to provide additonal configuration via the optional `config` parameter. Configuration is supplied as a dictionary; `id_regex` instructs how to query the identifer from the log messages, `id_justify` will right justify the identifer to make things look nice. For the progress bar, we need to specify `total` and `count_regex` to instruct how to query the total and when to count when an item is processed respectively. The value for these settings are specified as regular expressions and will match the function log messages, thus we need to ensure our function has log statements for these.
 
-#### [example1](https://github.com/soda480/mp4ansi/blob/master/examples/example1.py)
-Execute a function that simulates work by processing a bunch of random numbers. Execution is demonstrated as a progress bar, each function works on a different set of numbers thus the total is provided as a regular expression which MP4ansi will determine at runtime.
-![example1](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/example1.gif)
+```python
+from mp4ansi import MP4ansi
+import uuid, random, namegenerator, time, logging
+logger = logging.getLogger(__name__)
 
-#### [example2](https://github.com/soda480/mp4ansi/blob/master/examples/example2.py)
-Execute a function that calculates prime numbers for a set range of integers. Execution is scaled across 9 different processes where each process computes the primes on a different set of numbers. For example, the first process computes primes for the set 1-10K, second process 10K-20K, third process 20K-30K, etc. The total number of prime numbers is printed.
-![example2](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/example2.gif)
+def do_work(*args):
+    pid = str(uuid.uuid4())
+    logger.debug(f'processor id {pid[0:random.randint(8, 30)]}')
+    total = random.randint(400, 600)
+    logger.debug(f'processing total of {total}')
+    for _ in range(total):
+        logger.debug(f'processed {namegenerator.gen()}')
+        time.sleep(.01)
+    return total
 
-#### [example3](https://github.com/soda480/mp4ansi/blob/master/examples/example3.py)
-This example demonstrates the `Terminal` class defined within mp4ansi, this script writes random a random sentence to each line of the terminal randomly.
-![example3](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/example3.gif)
+process_data = [{} for item in range(8)]
+config = {
+    'id_regex': r'^processor id (?P<value>.*)$',
+    'id_justify': True,
+    'progress_bar': {
+        'total': r'^processing total of (?P<value>\d+)$',
+        'count_regex': r'^processed (?P<value>.*)$'}}
+print('Procesing items...')
+MP4ansi(function=do_work, process_data=process_data, config=config).execute()
+print(f"Total items processed {sum([item['result'] for item in process_data])}")
+```
 
-#### Running the examples ####
+Executing the code above results in the following:
+![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/inline-example2.gif)
 
-Build the Docker image and run the Docker container using the instructions described in the [Development](#development) section. Run the example scripts within the container:
+More [examples](https://github.com/soda480/mp4ansi/tree/master/examples) are included to demonstrate the mp4ansi package. To run the examples, build the Docker image and run the Docker container using the instructions described in the [Development](#development) section.
+
+To run the example scripts within the container:
 
 ```bash
 python examples/example#.py
