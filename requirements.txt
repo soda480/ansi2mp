@@ -1,2 +1,2 @@
-mpcurses
+mpmq
 colorama

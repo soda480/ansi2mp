@@ -4,15 +4,15 @@ import logging
 from queue import Empty
 from time import sleep
 
-from mpcurses import MPcontroller
+from mpmq import MPmq
 
 from .terminal import Terminal
 
 logger = logging.getLogger(__name__)
 
 
-class MP4ansi(MPcontroller):
-    """ a subclass of mpcurses.MPcontroller providing multi-processing (MP) capabilities for a simple ANSI terminal
+class MP4ansi(MPmq):
+    """ a subclass of MPmq providing multi-processing (MP) capabilities for a simple ANSI terminal
         setup simple ANSI terminal for all processes to be executed
         write log messages from executing functions to respective lines on ANSI terminal
         add ability to represent execution using progress bar
@@ -65,6 +65,5 @@ class MP4ansi(MPcontroller):
     def update_result(self):
         """ update process data with result
         """
-        sleep(1)
-        logger.debug(f'the result queue size is: {self.result_queue.qsize()}')
+        sleep(.75)
         super(MP4ansi, self).update_result()

@@ -12,10 +12,10 @@ use_plugin('pypi:pybuilder_radon', '~=0.1.2')
 use_plugin('pypi:pybuilder_bandit', '~=0.1.3')
 
 name = 'mp4ansi'
-authors = [Author('Emilio Reyes', 'emilio.reyes@intel.com')]
-summary = ''
+authors = [Author('Emilio Reyes', 'soda480@gmail.com')]
+summary = 'A simple ANSI-based terminal emulator that provides multi-processing capabilities.'
 url = 'https://github.com/soda480/mp4ansi'
-version = '0.1.0'
+version = '0.1.1'
 default_task = [
     'clean',
     'analyze',

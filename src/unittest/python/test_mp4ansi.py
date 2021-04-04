@@ -43,7 +43,7 @@ class TestMP4ansi(unittest.TestCase):
         config = {'key': 'value'}
         return MP4ansi(function=Mock(__name__='mockfunc'), process_data=process_data, config=config)
 
-    @patch('mp4ansi.mp4ansi.MPcontroller')
+    @patch('mp4ansi.mp4ansi.MPmq')
     @patch('mp4ansi.mp4ansi.Terminal')
     def test__init_Should_InstantiateTerminal_When_Called(self, terminal_patch, *patches):
         process_data = [{'id': 1}, {'id': 2}]
@@ -52,7 +52,7 @@ class TestMP4ansi(unittest.TestCase):
         terminal_patch.assert_called_once_with(len(process_data), config=config)
         self.assertEqual(client.terminal, terminal_patch.return_value)
 
-    @patch('mp4ansi.mp4ansi.MPcontroller.get_message')
+    @patch('mp4ansi.mp4ansi.MPmq.get_message')
     def test__get_message_Should_ReturnExpected_When_Match(self, get_message_patch, *patches):
         get_message_patch.return_value = {'offset': None, 'message': '#4-This is the message'}
         client = self.get_client()
@@ -60,7 +60,7 @@ class TestMP4ansi(unittest.TestCase):
         expected_result = {'offset': '4', 'control': None, 'message': 'This is the message'}
         self.assertEqual(result, expected_result)
 
-    @patch('mp4ansi.mp4ansi.MPcontroller.get_message')
+    @patch('mp4ansi.mp4ansi.MPmq.get_message')
     def test__get_message_Should_ReturnExpected_When_NoMatch(self, get_message_patch, *patches):
         get_message_patch.return_value = {'offset': None, 'message': 'This is the message'}
         client = self.get_client()
@@ -68,7 +68,7 @@ class TestMP4ansi(unittest.TestCase):
         expected_result = get_message_patch.return_value
         self.assertEqual(result, expected_result)
 
-    @patch('mp4ansi.mp4ansi.MPcontroller.get_message')
+    @patch('mp4ansi.mp4ansi.MPmq.get_message')
     def test__get_message_Should_ReturnExpected_When_Offset(self, get_message_patch, *patches):
         get_message_patch.return_value = {'offset': '4', 'message': '#4-This is the message'}
         client = self.get_client()
@@ -83,7 +83,7 @@ class TestMP4ansi(unittest.TestCase):
         client.terminal.write_line.assert_called_once_with(4, 'This is the message')
 
     @patch('mp4ansi.mp4ansi.Terminal')
-    @patch('mp4ansi.mp4ansi.MPcontroller.execute_run')
+    @patch('mp4ansi.mp4ansi.MPmq.execute_run')
     def test__execute_run_Should_CallExpected_When_Called(self, execute_run_patch, *patches):
         client = self.get_client()
         client.execute_run()
