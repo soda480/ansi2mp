@@ -9,7 +9,7 @@ A simple ANSI-based terminal emulator that provides multi-processing capabilitie
 
 MPansi also supports representing the function execution as a progress bar, you will need to provide an optional config argument containing a dictionary for how to query for the total and count (via regular expressions), see the [examples](https://github.com/soda480/mp4ansi/tree/master/examples) for more detail.
 
-MP4ansi is a subclass of the `mpcurses` mpcontroller, see [mpcurses](https://pypi.org/project/mpcurses/) for more information.
+MP4ansi is a subclass of `mpmq`, see [the mpmq PyPi page](https://pypi.org/project/mpmq/) for more information.
 
 ### Installation ###
 ```bash
