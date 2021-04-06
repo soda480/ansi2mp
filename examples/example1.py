@@ -60,10 +60,12 @@ def main(count):
         }
     }
 
-    mp4ansi = MP4ansi(function=do_something, process_data=process_data, config=config)
-
     print('Processing...')
+    mp4ansi = MP4ansi(function=do_something, process_data=process_data, config=config)
     mp4ansi.execute()
+    # print(mp4ansi.terminal.move_up(0), end='')
+    # mp4ansi = MP4ansi(function=do_something, process_data=process_data, config=config)
+    # mp4ansi.execute()
     print(f'Total processed: {get_total_processed(process_data)}')
 
 

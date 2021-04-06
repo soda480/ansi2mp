@@ -11,12 +11,12 @@ from colorama import Cursor
 
 logger = logging.getLogger(__name__)
 
-MAX_LINES = 50
+MAX_LINES = 75
 MAX_CHARS = 120
 HIDE_CURSOR = '\x1b[?25l'
 SHOW_CURSOR = '\x1b[?25h'
 CLEAR_EOL = '\033[K'
-PROGRESS_TICKER = '='
+PROGRESS_TICKER = '|'
 PROGRESS_BAR_WIDTH = 50
 ID_WIDTH = 30
 
@@ -89,7 +89,10 @@ class Terminal():
         if match_id:
             value = match_id.group('value')
             if self.config.get('id_justify', False):
-                value = value.rjust(ID_WIDTH)
+                if len(value) > ID_WIDTH:
+                    value = f'...{value[-(ID_WIDTH - 3):]}'
+                else:
+                    value = value.rjust(ID_WIDTH)
             self.terminal[offset]['id'] = value
             self.terminal[offset]['id_matched'] = True
 
@@ -130,7 +133,7 @@ class Terminal():
                 percentage = round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)
                 rjust = (len(str(self.terminal[offset]['total'])) * 2) + 4
                 indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}".rjust(rjust)
-                return f"Processing |{Style.DIM}{progress}>{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+                return f"Processing |{Style.DIM}{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
 
             else:
                 if self.terminal[offset]['count'] == self.terminal[offset]['total']:
@@ -138,13 +141,13 @@ class Terminal():
                     percentage = round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)
                     rjust = (len(str(self.terminal[offset]['total'])) * 2) + 4
                     indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}".rjust(rjust)
-                    return f"Processing |{progress}>| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+                    return f"Processing |{progress}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
 
         if self.terminal[offset]['count'] == self.terminal[offset]['total']:
             return 'Processing complete'
 
     def write_line(self, offset, text, ignore_progress=False):
-        """ write text at offset
+        """ write line at offset
         """
         if self.config.get('id_regex') and not self.terminal[offset].get('id_matched', False):
             self.assign_id(offset, text)
@@ -160,7 +163,6 @@ class Terminal():
 
         line = f"{id_to_display}: {text_to_display}"
         self.terminal[offset]['text'] = text_to_display
-        # logger.info(f'line: {line}')
 
         move_char = self.move(offset)
         print(f'{move_char}{CLEAR_EOL}', end='')

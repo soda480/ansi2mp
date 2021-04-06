@@ -20,6 +20,7 @@ from mock import Mock
 from mock import MagicMock
 
 from mp4ansi import Terminal
+from mp4ansi.terminal import MAX_LINES
 from mp4ansi.terminal import PROGRESS_BAR_WIDTH
 from mp4ansi.terminal import MAX_CHARS
 from mp4ansi.terminal import HIDE_CURSOR
@@ -67,7 +68,7 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.create')
     def test__validate_lines_Should_RaiseValueError_When_GreaterThanMaxLines(self, *patches):
         with self.assertRaises(ValueError):
-            Terminal(51)
+            Terminal(MAX_LINES + 1)
 
     @patch('mp4ansi.Terminal.validate_lines')
     @patch('mp4ansi.terminal.colorama_init')
@@ -120,6 +121,14 @@ class TestTerminal(unittest.TestCase):
         trmnl = Terminal(1, config=config)
         trmnl.assign_id(0, 'id is abcd123')
         self.assertEqual(trmnl.terminal[0]['id'], 'abcd123'.rjust(ID_WIDTH))
+        self.assertTrue(trmnl.terminal[0]['id_matched'])
+
+    def test__assign_id_Should_Justfiy_When_MatchedAndJustifyAndExceedsIdWidth(self, *patches):
+        config = {'id_regex': r'^id is (?P<value>.*)$', 'id_justify': True}
+        trmnl = Terminal(1, config=config)
+        text = 'this-is-a-very-long-name-here-greather-than-id-width'
+        trmnl.assign_id(0, f'id is {text}')
+        self.assertEqual(trmnl.terminal[0]['id'], f'...{text[-(ID_WIDTH - 3):]}')
         self.assertTrue(trmnl.terminal[0]['id_matched'])
 
     def test__assign_total_Should_SetExpected_When_TotalIsStr(self, *patches):

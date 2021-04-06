@@ -20,6 +20,7 @@ class MP4ansi(MPmq):
     def __init__(self, *args, **kwargs):
         logger.debug('executing MP4ansi constructor')
         config = kwargs.pop('config', None)
+        # call parent constructor
         super(MP4ansi, self).__init__(*args, **kwargs)
         self.terminal = Terminal(len(self.process_data), config=config)
 
@@ -28,42 +29,42 @@ class MP4ansi(MPmq):
             override parent class method
         """
         message = super(MP4ansi, self).get_message()
-        if not message['offset']:
-            # if parent get_message returned no offset then parse it from the message
-            match = re.match(r'^#(?P<offset>\d+)-(?P<message>.*)$', message['message'])
+        if message['offset'] is None:
+            # parse offset from the message
+            match = re.match(r'^#(?P<offset>\d+)-(?P<message>.*)$', message['message'], re.M)
             if match:
                 return {
                     'offset': match.group('offset'),
                     'control': None,
                     'message': match.group('message')
                 }
+            else:
+                logger.debug(f'unable to match offset in message {message}')
         return message
 
     def process_non_control_message(self, offset, message):
-        """ process non-control message
+        """ write message to terminal at offset
             override parent class method
         """
-        self.terminal.write_line(int(offset), message)
+        if offset is None:
+            logger.warn(f'unable to write {message} line to terminal because offset is None')
+        else:
+            self.terminal.write_line(int(offset), message)
 
     def execute_run(self):
-        """ write terminal and hide cursor then execute run
+        """ write data to terminal and hide cursor
             override parent class method
         """
+        logger.debug('executing run task wrapper')
         self.terminal.cursor(hide=True)
         self.terminal.write(ignore_progress=True)
+        # call parent method
         super(MP4ansi, self).execute_run()
 
     def final(self):
-        """ move down to last offset and enable cursor
+        """ write data to terminal and show cursor
             override parent class method
         """
-        # move_down = self.terminal.move_down(self.terminal.lines - 1)
-        # print(move_down)
+        logger.debug('executing final task')
         self.terminal.write(ignore_progress=True)
         self.terminal.cursor(hide=False)
-
-    def update_result(self):
-        """ update process data with result
-        """
-        sleep(.75)
-        super(MP4ansi, self).update_result()
