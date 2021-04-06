@@ -83,6 +83,13 @@ class TestMP4ansi(unittest.TestCase):
         client.terminal.write_line.assert_called_once_with(4, 'This is the message')
 
     @patch('mp4ansi.mp4ansi.Terminal')
+    @patch('mp4ansi.mp4ansi.logger')
+    def test__process_non_control_message_Should_CallExpected_When_NoOffSet(self, logger_patch, *patches):
+        client = self.get_client()
+        client.process_non_control_message(None, 'This is the message')
+        logger_patch.warn.assert_called()
+
+    @patch('mp4ansi.mp4ansi.Terminal')
     @patch('mp4ansi.mp4ansi.MPmq.execute_run')
     def test__execute_run_Should_CallExpected_When_Called(self, execute_run_patch, *patches):
         client = self.get_client()
@@ -96,9 +103,3 @@ class TestMP4ansi(unittest.TestCase):
         client = self.get_client()
         client.final()
         client.terminal.cursor.assert_called_once_with(hide=False)
-
-    @patch('mp4ansi.mp4ansi.sleep')
-    def test__update_result_Should_CallExpected_When_Called(self, sleep_patch, *patches):
-        client = self.get_client()
-        client.update_result()
-        sleep_patch.assert_called_once()
