@@ -119,32 +119,27 @@ class Terminal():
         if not self.terminal[offset]['total']:
             self.assign_total(offset, text)
 
+        if self.terminal[offset]['count'] == self.terminal[offset]['total']:
+            message = self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
+            return message
+
         regex_count = self.config['progress_bar']['count_regex']
         match_count = re.match(regex_count, text)
         if match_count:
             self.terminal[offset]['count'] += 1
-
             modulus = self.terminal[offset]['count'] % self.terminal[offset]['modulus']
             if modulus == 0:
-                self.terminal[offset]['modulus_count'] += 1
+                self.terminal[offset]['modulus_count'] = round(round(self.terminal[offset]['count'] / self.terminal[offset]['total'], 2) * PROGRESS_BAR_WIDTH)
                 progress = PROGRESS_TICKER * self.terminal[offset]['modulus_count']
-
                 padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[offset]['modulus_count'])
-                percentage = round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)
-                rjust = (len(str(self.terminal[offset]['total'])) * 2) + 4
-                indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}".rjust(rjust)
-                return f"Processing |{Style.DIM}{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
-
+                percentage = str(round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)).rjust(3)
+                indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
+                return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
             else:
                 if self.terminal[offset]['count'] == self.terminal[offset]['total']:
                     progress = PROGRESS_TICKER * PROGRESS_BAR_WIDTH
-                    percentage = round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)
-                    rjust = (len(str(self.terminal[offset]['total'])) * 2) + 4
-                    indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}".rjust(rjust)
-                    return f"Processing |{progress}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
-
-        if self.terminal[offset]['count'] == self.terminal[offset]['total']:
-            return 'Processing complete'
+                    indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
+                    return f"Processing |{progress}| {Style.BRIGHT}100%{Style.RESET_ALL} {indicator}"
 
     def write_line(self, offset, text, ignore_progress=False):
         """ write line at offset
