@@ -144,6 +144,12 @@ class Terminal():
     def write_line(self, offset, text, ignore_progress=False):
         """ write line at offset
         """
+        if text == '':
+            return
+
+        if text == self.terminal[offset]['text']:
+            return
+
         if self.config.get('id_regex') and not self.terminal[offset].get('id_matched', False):
             self.assign_id(offset, text)
 

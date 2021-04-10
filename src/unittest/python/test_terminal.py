@@ -218,6 +218,19 @@ class TestTerminal(unittest.TestCase):
         self.assertTrue('8001/8001' in result)
         self.assertTrue('100%' in result)
 
+    @patch('mp4ansi.Terminal.sanitize')
+    def test__write_line_Should_Return_When_EmptyText(self, sanitize_patch, *patches):
+        trmnl = Terminal(13)
+        trmnl.write_line(3, '')
+        sanitize_patch.assert_not_called()
+
+    @patch('mp4ansi.Terminal.sanitize')
+    def test__write_line_Should_Return_When_TextIsSame(self, sanitize_patch, *patches):
+        trmnl = Terminal(13)
+        trmnl.terminal[3]['text'] = 'message'
+        trmnl.write_line(3, 'message')
+        sanitize_patch.assert_not_called()
+
     @patch('builtins.print')
     @patch('mp4ansi.Terminal.sanitize')
     @patch('mp4ansi.Terminal.move')
