@@ -81,18 +81,27 @@ class Terminal():
             terminal.append(item)
         return terminal
 
+    def get_id_width(self):
+        """ return id width
+        """
+        id_width = self.config.get('id_width', ID_WIDTH)
+        if id_width > ID_WIDTH:
+            return ID_WIDTH
+        return id_width
+
     def assign_id(self, offset, text):
         """ assign id for offset using id_regex from config
         """
+        id_width = self.get_id_width()
         regex_id = self.config['id_regex']
         match_id = re.match(regex_id, text)
         if match_id:
             value = match_id.group('value')
             if self.config.get('id_justify', False):
-                if len(value) > ID_WIDTH:
-                    value = f'...{value[-(ID_WIDTH - 3):]}'
+                if len(value) > id_width:
+                    value = f'...{value[-(id_width - 3):]}'
                 else:
-                    value = value.rjust(ID_WIDTH)
+                    value = value.rjust(id_width)
             self.terminal[offset]['id'] = value
             self.terminal[offset]['id_matched'] = True
 
@@ -144,10 +153,10 @@ class Terminal():
     def write_line(self, offset, text, ignore_progress=False):
         """ write line at offset
         """
-        if text == '':
-            return
-
-        if text == self.terminal[offset]['text']:
+        if text == '' or text == self.terminal[offset]['text']:
+            move_char = self.move(offset)
+            print(move_char)
+            self.current += 1
             return
 
         if self.config.get('id_regex') and not self.terminal[offset].get('id_matched', False):
