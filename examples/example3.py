@@ -14,7 +14,7 @@ def main(count):
     terminal.cursor(hide=True)
     for _ in range(1000):
         offset = randint(0, count - 1)
-        terminal.write_line(offset, docgen.sentence())
+        terminal.write_text(offset, docgen.sentence())
         sleep(.01)
     terminal.write()
     terminal.cursor(hide=False)

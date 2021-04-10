@@ -49,7 +49,7 @@ class MP4ansi(MPmq):
         if offset is None:
             logger.warn(f'unable to write {message} line to terminal because offset is None')
         else:
-            self.terminal.write_line(int(offset), message)
+            self.terminal.write_text(int(offset), message)
 
     def execute_run(self):
         """ write data to terminal and hide cursor

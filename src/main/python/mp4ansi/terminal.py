@@ -150,44 +150,50 @@ class Terminal():
                     indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
                     return f"Processing |{progress}| {Style.BRIGHT}100%{Style.RESET_ALL} {indicator}"
 
-    def write_line(self, offset, text, ignore_progress=False):
-        """ write line at offset
+    def write_text(self, offset, text, ignore_progress=False):
+        """ write text at offset
         """
-        if text == '' or text == self.terminal[offset]['text']:
-            move_char = self.move(offset)
-            print(move_char)
-            self.current += 1
-            return
-
         if self.config.get('id_regex') and not self.terminal[offset].get('id_matched', False):
             self.assign_id(offset, text)
 
-        if not ignore_progress and self.config.get('progress_bar'):
-            text_to_display = self.get_progress_text(offset, text)
-            if not text_to_display:
+        if text == '' or text == self.terminal[offset]['text']:
+            # no text or same text to display
+            # move to offset but do not print text
+            self.write_line(offset, None, None)
+            return
+
+        if self.config.get('progress_bar') and not ignore_progress:
+            text_to_print = self.get_progress_text(offset, text)
+            if not text_to_print:
                 return
         else:
-            text_to_display = self.sanitize(text)
+            text_to_print = self.sanitize(text)
 
-        id_to_display = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{self.terminal[offset]['id']}{Style.RESET_ALL}"
+        id_ = self.terminal[offset]['id']
+        id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{id_}{Style.RESET_ALL}"
+        self.write_line(offset, id_to_print, text_to_print)
 
-        line = f"{id_to_display}: {text_to_display}"
-        self.terminal[offset]['text'] = text_to_display
-
-        move_char = self.move(offset)
-        print(f'{move_char}{CLEAR_EOL}', end='')
-        print(line)
+    def write_line(self, offset, id_, text):
+        """ move to offset and write id_ and text
+        """
+        move_char = self.get_move_char(offset)
+        if text:
+            self.terminal[offset]['text'] = text
+            print(f'{move_char}{CLEAR_EOL}', end='')
+            print(f"{id_}: {text}")
+        else:
+            print(move_char)
         self.current += 1
 
-    def move(self, offset):
-        """ return move to offset
+    def get_move_char(self, offset):
+        """ return move char to move to offset
         """
-        char = ''
+        move_char = ''
         if offset < self.current:
-            char = self.move_up(offset)
+            move_char = self.move_up(offset)
         elif offset > self.current:
-            char = self.move_down(offset)
-        return char
+            move_char = self.move_down(offset)
+        return move_char
 
     def move_down(self, offset):
         """ return down to offset
@@ -210,7 +216,7 @@ class Terminal():
         if self.current is None:
             self.current = 0
         for offset, item in enumerate(self.terminal):
-            self.write_line(offset, item['text'], ignore_progress=ignore_progress)
+            self.write_text(offset, item['text'], ignore_progress=ignore_progress)
 
     def sanitize(self, text):
         """ sanitize text
