@@ -11,8 +11,6 @@ def do_work(*args):
     logger.debug(f'processing total of {total}')
     for _ in range(total):
         logger.debug(f'processed {namegenerator.gen()}')
-        logger.debug('')
-        logger.debug('')
         time.sleep(.01)
     return total
 
