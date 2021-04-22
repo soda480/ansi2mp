@@ -40,12 +40,12 @@ MP4ansi(function=do_work, process_data=process_data).execute()
 print(f"Total items processed {sum([item['result'] for item in process_data])}")
 ```
 
-Executing the code above results in the following:
-![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/inline-example1.gif)
+Executing the code above [example1](https://github.com/soda480/mp4ansi/tree/master/examples/example1.py) results in the following:
+![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/example1.gif)
 
 **Note** the function being executed `do_work` has no context about multiprocessing or the terminal; it simply perform a function on a given dataset. MP4ansi takes care of setting up the multiprocessing, setting up the terminal, and maintaining the thread-safe queues that are required for inter-process communication.
 
-Let's update the example to add an identifer for each process and to show execution as a progress bar. To do this we need to provide additonal configuration via the optional `config` parameter. Configuration is supplied as a dictionary; `id_regex` instructs how to query the identifer from the log messages, `id_justify` will right justify the identifer to make things look nice. For the progress bar, we need to specify `total` and `count_regex` to instruct how to query the total and when to count when an item is processed respectively. The value for these settings are specified as regular expressions and will match the function log messages, thus we need to ensure our function has log statements for these.
+Let's update the example to add an identifer for each process and to show execution as a progress bar. To do this we need to provide additonal configuration via the optional `config` parameter. Configuration is supplied as a dictionary; `id_regex` instructs how to query the identifer from the log messages, `id_justify` will right justify the identifer to make things look nice. For the progress bar, we need to specify `total` and `count_regex` to instruct how to query the total and when to count that an item has been processed respectively. The value for these settings are specified as regular expressions and will match the function log messages, thus we need to ensure our function has log statements for these. If each instance of your function executes on a static data range then you can specify total as an `int`, but in this example the data range is dynamic, i.e. each process will execute on varying data ranges.
 
 ```python
 from mp4ansi import MP4ansi
@@ -74,8 +74,8 @@ MP4ansi(function=do_work, process_data=process_data, config=config).execute()
 print(f"Total items processed {sum([item['result'] for item in process_data])}")
 ```
 
-Executing the code above results in the following:
-![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/inline-example2.gif)
+Executing the code above [example2](https://github.com/soda480/mp4ansi/tree/master/examples/example2.py) results in the following:
+![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/example2.gif)
 
 More [examples](https://github.com/soda480/mp4ansi/tree/master/examples) are included to demonstrate the mp4ansi package. To run the examples, build the Docker image and run the Docker container using the instructions described in the [Development](#development) section.
 
