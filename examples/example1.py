@@ -34,7 +34,7 @@ def get_process_data(count):
 def do_something(*args):
     uuid = args[0]['uuid']
     logger.debug(f'processor id {uuid}')
-    total = randint(1000, 4000)
+    total = randint(1000, 9000)
     logger.debug(f'processing total of {total}')
     for index in range(total):
         logger.debug(f'processed {index}')

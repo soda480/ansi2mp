@@ -27,7 +27,7 @@ import uuid, random, namegenerator, time, logging
 logger = logging.getLogger(__name__)
 
 def do_work(*args):
-    total = random.randint(400, 600)
+    total = random.randint(200, 600)
     logger.debug(f'processing total of {total}')
     for _ in range(total):
         logger.debug(f'processed {namegenerator.gen()}')
@@ -55,7 +55,7 @@ logger = logging.getLogger(__name__)
 def do_work(*args):
     pid = str(uuid.uuid4())
     logger.debug(f'processor id {pid[0:random.randint(8, 30)]}')
-    total = random.randint(400, 600)
+    total = random.randint(200, 600)
     logger.debug(f'processing total of {total}')
     for _ in range(total):
         logger.debug(f'processed {namegenerator.gen()}')
