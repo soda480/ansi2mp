@@ -278,6 +278,18 @@ class TestTerminal(unittest.TestCase):
         write_line_patch.assert_called()
         sanitize_patch.assert_called_once_with(text)
 
+    @patch('mp4ansi.Terminal.get_progress_text', return_value=None)
+    @patch('mp4ansi.Terminal.write_line')
+    @patch('mp4ansi.Terminal.assign_id')
+    def test__write_text_Should_CallExpected_When_IdAssignedProgressBar(self, assign_id_patch, write_line_patch, *patches):
+        config = {'id_regex': r'^processor id (?P<value>.*)$', 'progress_bar': {'total': 8001, 'count_regex': r'^processed (?P<value>\d+)$'}}
+        trmnl = Terminal(13, config=config)
+        offset = 1
+        text = 'processor id 121372'
+        trmnl.write_text(offset, text)
+        assign_id_patch.assert_called_once_with(offset, text)
+        write_line_patch.assert_called()
+
     @patch('mp4ansi.Terminal.get_move_char')
     @patch('builtins.print')
     def test__write_line_Should_CallExpected_When_NoText(self, print_patch, get_move_char_patch, *patches):
