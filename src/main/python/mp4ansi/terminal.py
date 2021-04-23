@@ -153,8 +153,10 @@ class Terminal():
     def write_text(self, offset, text, ignore_progress=False):
         """ write text at offset
         """
+        id_assigned = False
         if self.config.get('id_regex') and not self.terminal[offset].get('id_matched', False):
             self.assign_id(offset, text)
+            id_assigned = True
 
         if text == '' or text == self.terminal[offset]['text']:
             # no text or same text to display
@@ -165,7 +167,11 @@ class Terminal():
         if self.config.get('progress_bar') and not ignore_progress:
             text_to_print = self.get_progress_text(offset, text)
             if not text_to_print:
-                return
+                if id_assigned:
+                    # ensure id is written to terminal when it is assigned
+                    text_to_print = ' '
+                else:
+                    return
         else:
             text_to_print = self.sanitize(text)
 
