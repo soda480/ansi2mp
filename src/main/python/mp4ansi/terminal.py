@@ -136,19 +136,12 @@ class Terminal():
         match_count = re.match(regex_count, text)
         if match_count:
             self.terminal[offset]['count'] += 1
-            modulus = self.terminal[offset]['count'] % self.terminal[offset]['modulus']
-            if modulus == 0:
-                self.terminal[offset]['modulus_count'] = round(round(self.terminal[offset]['count'] / self.terminal[offset]['total'], 2) * PROGRESS_BAR_WIDTH)
-                progress = PROGRESS_TICKER * self.terminal[offset]['modulus_count']
-                padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[offset]['modulus_count'])
-                percentage = str(round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)).rjust(3)
-                indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
-                return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
-            else:
-                if self.terminal[offset]['count'] == self.terminal[offset]['total']:
-                    progress = PROGRESS_TICKER * PROGRESS_BAR_WIDTH
-                    indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
-                    return f"Processing |{progress}| {Style.BRIGHT}100%{Style.RESET_ALL} {indicator}"
+            self.terminal[offset]['modulus_count'] = round(round(self.terminal[offset]['count'] / self.terminal[offset]['total'], 2) * PROGRESS_BAR_WIDTH)
+            progress = PROGRESS_TICKER * self.terminal[offset]['modulus_count']
+            padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[offset]['modulus_count'])
+            percentage = str(round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)).rjust(3)
+            indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
+            return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
 
     def write_text(self, offset, text, ignore_progress=False):
         """ write text at offset
