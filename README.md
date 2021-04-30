@@ -1,9 +1,11 @@
+# mp4ansi #
 [![GitHub Workflow Status](https://github.com/soda480/mp4ansi/workflows/build/badge.svg)](https://github.com/soda480/mp4ansi/actions)
 [![Code Coverage](https://codecov.io/gh/soda480/mp4ansi/branch/main/graph/badge.svg?token=6NTX6LSP7Q)](https://codecov.io/gh/soda480/mp4ansi)
 [![Code Grade](https://www.code-inspector.com/project/20694/status/svg)](https://frontend.code-inspector.com/project/20694/dashboard)
+[![vulnerabilities](https://img.shields.io/badge/vulnerabilities-None-green)](https://pypi.org/project/bandit/)
 [![PyPI version](https://badge.fury.io/py/mp4ansi.svg)](https://badge.fury.io/py/mp4ansi)
+[![python](https://img.shields.io/badge/python-3.6-teal)](https://www.python.org/downloads/)
 
-# mp4ansi #
 
 A simple ANSI-based terminal emulator that provides multi-processing capabilities. MP4ansi will scale execution of a specified function across multiple background processes, where each process is mapped to specific line on the terminal. As the function executes its log messages will automatically be written to the respective line on the terminal. The number of processes along with the arguments to provide each process is specified as a list of dictionaries. The number of elements in the list will dictate the total number of processes to execute (as well as the number of lines in the terminal). The result of each function is written to the respective dictionary element and can be interogated upon completion.
 

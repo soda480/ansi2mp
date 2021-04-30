@@ -10,17 +10,19 @@ use_plugin('python.coverage')
 use_plugin('python.distutils')
 use_plugin('pypi:pybuilder_radon', '~=0.1.2')
 use_plugin('pypi:pybuilder_bandit', '~=0.1.3')
+use_plugin('pypi:pybuilder_anybadge', '~=0.1.6')
 
 name = 'mp4ansi'
 authors = [Author('Emilio Reyes', 'soda480@gmail.com')]
 summary = 'A simple ANSI-based terminal emulator that provides multi-processing capabilities.'
 url = 'https://github.com/soda480/mp4ansi'
-version = '0.1.7'
+version = '0.1.8'
 default_task = [
     'clean',
     'analyze',
     'radon',
     'bandit',
+    'anybadge',
     'package']
 license = 'Apache License, Version 2.0'
 description = summary
@@ -58,3 +60,5 @@ def set_properties(project):
     project.set_property('radon_break_build_average_complexity_threshold', 4)
     project.set_property('radon_break_build_complexity_threshold', 10)
     project.set_property('bandit_break_build', True)
+    project.set_property('anybadge_exclude', 'coverage, complexity')
+    project.set_property('anybadge_use_shields', True)
