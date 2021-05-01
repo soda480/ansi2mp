@@ -31,19 +31,14 @@ class Terminal():
         """
         logger.debug('executing Terminal constructor')
         self.validate_lines(lines)
-        self.lines = lines
-        self.zfill = len(str(lines))
-
         if not config:
             config = {}
         self.validate_config(config)
         self.config = config
-
         colorama_init()
-
         self.current = None
         if create:
-            self.terminal = self.create()
+            self.terminal = self.create(lines)
 
     def validate_lines(self, lines):
         """ validate lines
@@ -64,14 +59,15 @@ class Terminal():
             if not isinstance(config['progress_bar']['total'], (str, int)):
                 raise ValueError('progress_bar.total must be an integer or string')
 
-    def create(self):
+    def create(self, lines):
         """ return list of dictionaries representing terminal for config
         """
         logger.debug('creating terminal')
         terminal = []
-        for index in range(self.lines):
+        zfill = len(str(lines))
+        for index in range(lines):
             item = {
-                'id': str(index).zfill(self.zfill),
+                'id': str(index).zfill(zfill),
                 'text': ''
             }
             if self.config.get('progress_bar'):

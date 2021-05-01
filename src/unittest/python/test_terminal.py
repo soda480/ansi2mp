@@ -50,8 +50,6 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.create')
     def test__init__Should_SetAttributes_When_Called(self, create_patch, *patches):
         trmnl = Terminal(4)
-        self.assertEqual(trmnl.lines, 4)
-        self.assertEqual(trmnl.zfill, 1)
         self.assertEqual(trmnl.config, {})
         self.assertIsNone(trmnl.current)
         self.assertEqual(trmnl.terminal, create_patch.return_value)
@@ -90,7 +88,7 @@ class TestTerminal(unittest.TestCase):
     def test__create_Should_ReturnExpected_When_Called(self, *patches):
         config = {'progress_bar': {'total': 10, 'count_regex': '-regex-'}}
         trmnl = Terminal(1, create=False, config=config)
-        result = trmnl.create()
+        result = trmnl.create(1)
         expected_result = [
             {
                 'id': '0',
@@ -374,3 +372,10 @@ class TestTerminal(unittest.TestCase):
         trmnl = Terminal(3, create=False, config={'id_regex': 'regex', 'id_width': ID_WIDTH + 1})
         result = trmnl.get_id_width()
         self.assertEqual(result, ID_WIDTH)
+
+    @patch('mp4ansi.Terminal.assign_id', return_value=None)
+    def test__get_identifier_Should_ReturnExpected_When_AssignIdNone(self, *patches):
+        trmnl = Terminal(1, create=False, config={'id_regex': 'regex'})
+        trmnl.terminal = [{'id': '--id--'}]
+        identifier, assigned = trmnl.get_identifier(0, 'text')
+        self.assertFalse(assigned)
