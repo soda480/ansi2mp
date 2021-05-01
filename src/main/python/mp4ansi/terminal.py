@@ -92,18 +92,18 @@ class Terminal():
     def assign_id(self, offset, text):
         """ assign id for offset using id_regex from config
         """
-        id_width = self.get_id_width()
         regex_id = self.config['id_regex']
         match_id = re.match(regex_id, text)
         if match_id:
             value = match_id.group('value')
             if self.config.get('id_justify', False):
+                id_width = self.get_id_width()
                 if len(value) > id_width:
                     value = f'...{value[-(id_width - 3):]}'
                 else:
                     value = value.rjust(id_width)
             self.terminal[offset]['id'] = value
-            self.terminal[offset]['id_matched'] = True
+            return value
 
     def assign_total(self, offset, text):
         """ assign total for offset using total from config
@@ -121,6 +121,15 @@ class Terminal():
             # in case total less than progress bar width then lets set total to 1 to avoid divide by zero
             if self.terminal[offset]['modulus'] == 0:
                 self.terminal[offset]['modulus'] = 1
+
+    def get_identifier(self, offset, text):
+        """ return tuple identifier and if it was assigned
+        """
+        assigned = False
+        if self.config.get('id_regex'):
+            if self.assign_id(offset, text) is not None:
+                assigned = True
+        return self.terminal[offset]['id'], assigned
 
     def get_progress_text(self, offset, text):
         """ process progress bar
@@ -146,42 +155,28 @@ class Terminal():
     def write_text(self, offset, text, ignore_progress=False):
         """ write text at offset
         """
-        id_assigned = False
-        if self.config.get('id_regex') and not self.terminal[offset].get('id_matched', False):
-            self.assign_id(offset, text)
-            id_assigned = True
-
-        if text == '' or text == self.terminal[offset]['text']:
-            # no text or same text to display
-            # move to offset but do not print text
-            self.write_line(offset, None, None)
-            return
-
+        identifier, identifer_assigned = self.get_identifier(offset, text)
         if self.config.get('progress_bar') and not ignore_progress:
             text_to_print = self.get_progress_text(offset, text)
-            if not text_to_print:
-                if id_assigned:
-                    # ensure id is written to terminal when it is assigned
-                    text_to_print = ' '
-                else:
-                    return
+            if not text_to_print and identifer_assigned:
+                # ensure id is written to terminal when it is assigned
+                text_to_print = ''
         else:
             text_to_print = self.sanitize(text)
 
-        id_ = self.terminal[offset]['id']
-        id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{id_}{Style.RESET_ALL}"
+        id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
         self.write_line(offset, id_to_print, text_to_print)
 
-    def write_line(self, offset, id_, text):
-        """ move to offset and write id_ and text
+    def write_line(self, offset, identifier, text):
+        """ move to offset and write identifier and text
         """
         move_char = self.get_move_char(offset)
-        if text:
+        if text is None:
+            print(move_char)
+        else:
             self.terminal[offset]['text'] = text
             print(f'{move_char}{CLEAR_EOL}', end='')
-            print(f"{id_}: {text}")
-        else:
-            print(move_char)
+            print(f"{identifier}: {text}")
         self.current += 1
 
     def get_move_char(self, offset):

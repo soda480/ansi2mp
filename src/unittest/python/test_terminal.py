@@ -107,7 +107,6 @@ class TestTerminal(unittest.TestCase):
         trmnl = Terminal(1, config=config)
         trmnl.assign_id(0, 'id is abcd123')
         self.assertEqual(trmnl.terminal[0]['id'], 'abcd123')
-        self.assertTrue(trmnl.terminal[0]['id_matched'])
 
     def test__assign_id_Should_NotSet_When_NotMatched(self, *patches):
         config = {'id_regex': r'^id is (?P<value>.*)$'}
@@ -121,7 +120,6 @@ class TestTerminal(unittest.TestCase):
         trmnl = Terminal(1, config=config)
         trmnl.assign_id(0, 'id is abcd123')
         self.assertEqual(trmnl.terminal[0]['id'], 'abcd123'.rjust(ID_WIDTH))
-        self.assertTrue(trmnl.terminal[0]['id_matched'])
 
     def test__assign_id_Should_Justfiy_When_MatchedAndJustifyAndExceedsIdWidth(self, *patches):
         config = {'id_regex': r'^id is (?P<value>.*)$', 'id_justify': True}
@@ -129,7 +127,6 @@ class TestTerminal(unittest.TestCase):
         text = 'this-is-a-very-long-name-here-greather-than-id-width'
         trmnl.assign_id(0, f'id is {text}')
         self.assertEqual(trmnl.terminal[0]['id'], f'...{text[-(ID_WIDTH - 3):]}')
-        self.assertTrue(trmnl.terminal[0]['id_matched'])
 
     def test__assign_total_Should_SetExpected_When_TotalIsStr(self, *patches):
         config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': '-regex-'}}
@@ -219,44 +216,14 @@ class TestTerminal(unittest.TestCase):
         self.assertTrue('100%' in result)
 
     @patch('mp4ansi.Terminal.write_line')
-    @patch('mp4ansi.Terminal.sanitize')
-    def test__write_text_Should_Return_When_EmptyText(self, sanitize_patch, write_line_patch, *patches):
-        trmnl = Terminal(13)
-        offset = 3
-        trmnl.write_text(offset, '')
-        sanitize_patch.assert_not_called()
-        write_line_patch.assert_called_once_with(offset, None, None)
-
-    @patch('mp4ansi.Terminal.write_line')
-    @patch('mp4ansi.Terminal.sanitize')
-    def test__write_text_Should_Return_When_TextIsSame(self, sanitize_patch, write_line_patch, *patches):
-        trmnl = Terminal(13)
-        offset = 3
-        trmnl.terminal[offset]['text'] = 'message'
-        trmnl.write_text(offset, 'message')
-        sanitize_patch.assert_not_called()
-        write_line_patch.assert_called_once_with(offset, None, None)
-
-    @patch('mp4ansi.Terminal.write_line')
     @patch('mp4ansi.Terminal.assign_id')
     def test__write_text_Should_CallAssignId_When_IdRegexAndNotIdMatched(self, assign_id_patch, *patches):
         config = {'id_regex': r'^processor id (?P<value>.*)$'}
         trmnl = Terminal(13, config=config)
         offset = 1
-        text = ''
+        text = 'some text'
         trmnl.write_text(offset, text, ignore_progress=True)
         assign_id_patch.assert_called_once_with(offset, text)
-
-    @patch('mp4ansi.Terminal.get_progress_text', return_value=None)
-    @patch('mp4ansi.Terminal.write_line')
-    def test__write_text_Should_ReturnAndCallExpected_When_GetProgressTextReturnsNothing(self, write_line_patch, *patches):
-        config = {'progress_bar': {'total': 8001, 'count_regex': r'^processed (?P<value>\d+)$'}}
-        trmnl = Terminal(13, config=config)
-        offset = 3
-        text = 'processed 8001'
-        result = trmnl.write_text(offset, text)
-        self.assertIsNone(result)
-        write_line_patch.assert_not_called()
 
     @patch('mp4ansi.Terminal.get_progress_text', return_value='something')
     @patch('mp4ansi.Terminal.write_line')
