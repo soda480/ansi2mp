@@ -3,6 +3,7 @@ import re
 import sys
 import math
 import logging
+from sys import stderr
 from colorama import init as colorama_init
 from colorama import Style
 from colorama import Fore
@@ -168,11 +169,12 @@ class Terminal():
         """
         move_char = self.get_move_char(offset)
         if text is None:
-            print(move_char)
+            print(move_char, file=stderr)
         else:
             self.terminal[offset]['text'] = text
-            print(f'{move_char}{CLEAR_EOL}', end='')
-            print(f"{identifier}: {text}")
+            print(f'{move_char}{CLEAR_EOL}', end='', file=stderr)
+            print(f"{identifier}: {text}", file=stderr)
+        stderr.flush()
         self.current += 1
 
     def get_move_char(self, offset):
@@ -221,6 +223,6 @@ class Terminal():
         """ show or hide cursor
         """
         if hide:
-            print(HIDE_CURSOR, end='')
+            print(HIDE_CURSOR, end='', file=stderr)
         else:
-            print(SHOW_CURSOR, end='')
+            print(SHOW_CURSOR, end='', file=stderr)
