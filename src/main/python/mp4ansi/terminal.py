@@ -149,8 +149,8 @@ class Terminal():
             indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
             return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
 
-    def write_text(self, offset, text, ignore_progress=False):
-        """ write text at offset
+    def write_line(self, offset, text, ignore_progress=False):
+        """ write line at offset
         """
         identifier, identifer_assigned = self.get_identifier(offset, text)
         if self.config.get('progress_bar') and not ignore_progress:
@@ -162,9 +162,9 @@ class Terminal():
             text_to_print = self.sanitize(text)
 
         id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
-        self.write_line(offset, id_to_print, text_to_print)
+        self.write(offset, id_to_print, text_to_print)
 
-    def write_line(self, offset, identifier, text):
+    def write(self, offset, identifier, text):
         """ move to offset and write identifier and text
         """
         move_char = self.get_move_char(offset)
@@ -201,14 +201,14 @@ class Terminal():
         self.current -= diff
         return Cursor.UP(diff)
 
-    def write(self, ignore_progress=False):
-        """ write lines to screen
+    def write_lines(self, ignore_progress=False):
+        """ write lines to terminal
         """
         logger.debug('writing terminal')
         if self.current is None:
             self.current = 0
         for offset, item in enumerate(self.terminal):
-            self.write_text(offset, item['text'], ignore_progress=ignore_progress)
+            self.write_line(offset, item['text'], ignore_progress=ignore_progress)
 
     def sanitize(self, text):
         """ sanitize text

@@ -49,7 +49,7 @@ class MP4ansi(MPmq):
         if offset is None:
             logger.warn(f'unable to write {message} line to terminal because offset is None')
         else:
-            self.terminal.write_text(int(offset), message)
+            self.terminal.write_line(int(offset), message)
 
     def execute_run(self):
         """ write data to terminal and hide cursor
@@ -57,7 +57,7 @@ class MP4ansi(MPmq):
         """
         logger.debug('executing run task wrapper')
         self.terminal.cursor(hide=True)
-        self.terminal.write(ignore_progress=True)
+        self.terminal.write_lines(ignore_progress=True)
         # call parent method
         super(MP4ansi, self).execute_run()
 
@@ -66,5 +66,5 @@ class MP4ansi(MPmq):
             override parent class method
         """
         logger.debug('executing final task')
-        self.terminal.write(ignore_progress=True)
+        self.terminal.write_lines(ignore_progress=True)
         self.terminal.cursor(hide=False)
