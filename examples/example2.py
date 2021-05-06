@@ -1,31 +1,28 @@
+#   -*- coding: utf-8 -*-
 from mp4ansi import MP4ansi
-import uuid, random, namegenerator, time, logging
+import names, random, logging
 logger = logging.getLogger(__name__)
 
 def do_work(*args):
-    """ process widgets
-    """
-    pid = str(uuid.uuid4())
-    logger.debug(f'processor id {pid[0:random.randint(8, 30)]}')
-    total = random.randint(200, 600)
+    last_name = names.get_last_name()
+    logger.debug(f'processor is {last_name}')
+    total = random.randint(50, 125)
     logger.debug(f'processing total of {total}')
     for _ in range(total):
-        logger.debug(f'processed {namegenerator.gen()}')
-        time.sleep(.01)
+        logger.debug(f'processed {names.get_full_name()}')
     return total
 
 process_data = [{} for item in range(8)]
 config = {
-    'id_regex': r'^processor id (?P<value>.*)$',
+    'id_regex': r'^processor is (?P<value>.*)$',
     'id_justify': True,
-    # 'id_width': 18,
+    'id_width': 10,
     'progress_bar': {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',
-        # 'progress_message': 'Processing is done!'
+        'progress_message': 'Finished processing names'
     }
 }
-print('Procesing items...')
-mp4ansi = MP4ansi(function=do_work, process_data=process_data, config=config)
-mp4ansi.execute()
-print(f"Total items processed {sum([item['result'] for item in process_data])}")
+print('Procesing names...')
+MP4ansi(function=do_work, process_data=process_data, config=config).execute()
+print(f"Total names processed {sum([item['result'] for item in process_data])}")

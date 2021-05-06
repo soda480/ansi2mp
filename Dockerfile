@@ -7,6 +7,6 @@ WORKDIR /mp4ansi
 
 COPY . /mp4ansi/
 
-RUN pip install pybuilder==0.11.17
+RUN pip install pybuilder==0.11.17 names essential_generators
 RUN pyb install_dependencies
 RUN pyb install

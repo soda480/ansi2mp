@@ -156,46 +156,46 @@ class TestTerminal(unittest.TestCase):
     def test__get_progress_text_Should_CallAssignTotal_When_NoTotal(self, assign_total_patch, *patches):
         config = {'progress_bar': {'total': 121372, 'count_regex': '-regex-'}}
         trmnl = Terminal(13, config=config)
-        offset = 3
+        index = 3
         text = '-text-'
-        trmnl.get_progress_text(offset, text)
-        assign_total_patch.assert_called_once_with(offset, text)
+        trmnl.get_progress_text(index, text)
+        assign_total_patch.assert_called_once_with(index, text)
 
     @patch('mp4ansi.Terminal.assign_total')
     def test__get_progress_text_Should_ReturnExpected_When_CountIsEqualToTotal(self, *patches):
         config = {'progress_bar': {'total': 121372, 'count_regex': '-regex-'}}
         durations = {'3': '0:03:23'}
         trmnl = Terminal(13, config=config, durations=durations)
-        offset = 3
-        trmnl.terminal[offset]['count'] = 121372
-        trmnl.terminal[offset]['total'] = 121372
+        index = 3
+        trmnl.terminal[index]['count'] = 121372
+        trmnl.terminal[index]['total'] = 121372
         text = '-text-'
-        trmnl.get_progress_text(offset, text)
-        result = trmnl.get_progress_text(offset, text)
+        trmnl.get_progress_text(index, text)
+        result = trmnl.get_progress_text(index, text)
         self.assertEqual(result, 'Processing complete')
 
     @patch('mp4ansi.Terminal.assign_total')
     def test__get_progress_text_Should_IncrementCount_When_CountRegexMatch(self, *patches):
         config = {'progress_bar': {'total': 121372, 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
-        offset = 3
-        trmnl.terminal[offset]['count'] = 41407
-        trmnl.terminal[offset]['total'] = 121372
-        trmnl.terminal[offset]['modulus'] = round(trmnl.terminal[offset]['total'] / PROGRESS_BAR_WIDTH)
+        index = 3
+        trmnl.terminal[index]['count'] = 41407
+        trmnl.terminal[index]['total'] = 121372
+        trmnl.terminal[index]['modulus'] = round(trmnl.terminal[index]['total'] / PROGRESS_BAR_WIDTH)
         text = 'processed 41408'
-        trmnl.get_progress_text(offset, text)
-        self.assertEqual(trmnl.terminal[offset]['count'], 41408)
+        trmnl.get_progress_text(index, text)
+        self.assertEqual(trmnl.terminal[index]['count'], 41408)
 
     @patch('mp4ansi.Terminal.assign_total')
     def test__get_progress_text_Should_IncrementCount_When_Modulus(self, *patches):
         config = {'progress_bar': {'total': 8000, 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
-        offset = 3
-        trmnl.terminal[offset]['count'] = 3999
-        trmnl.terminal[offset]['total'] = 8000
-        trmnl.terminal[offset]['modulus'] = round(trmnl.terminal[offset]['total'] / PROGRESS_BAR_WIDTH)
+        index = 3
+        trmnl.terminal[index]['count'] = 3999
+        trmnl.terminal[index]['total'] = 8000
+        trmnl.terminal[index]['modulus'] = round(trmnl.terminal[index]['total'] / PROGRESS_BAR_WIDTH)
         text = 'processed 4000'
-        result = trmnl.get_progress_text(offset, text)
+        result = trmnl.get_progress_text(index, text)
         self.assertTrue('Processing' in result)
         self.assertTrue('4000/8000' in result)
         self.assertTrue('50%' in result)
@@ -204,12 +204,12 @@ class TestTerminal(unittest.TestCase):
     def test__get_progress_text_Should_IncrementCount_When_CountRegexAndCountIsEqualToTotal(self, *patches):
         config = {'progress_bar': {'total': 8001, 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
-        offset = 3
-        trmnl.terminal[offset]['count'] = 8000
-        trmnl.terminal[offset]['total'] = 8001
-        trmnl.terminal[offset]['modulus'] = round(trmnl.terminal[offset]['total'] / PROGRESS_BAR_WIDTH)
+        index = 3
+        trmnl.terminal[index]['count'] = 8000
+        trmnl.terminal[index]['total'] = 8001
+        trmnl.terminal[index]['modulus'] = round(trmnl.terminal[index]['total'] / PROGRESS_BAR_WIDTH)
         text = 'processed 8001'
-        result = trmnl.get_progress_text(offset, text)
+        result = trmnl.get_progress_text(index, text)
         self.assertTrue('Processing' in result)
         self.assertTrue('8001/8001' in result)
         self.assertTrue('100%' in result)
@@ -219,28 +219,28 @@ class TestTerminal(unittest.TestCase):
     def test__write_line_Should_CallAssignId_When_IdRegexAndNotIdMatched(self, assign_id_patch, *patches):
         config = {'id_regex': r'^processor id (?P<value>.*)$'}
         trmnl = Terminal(13, config=config, durations={'1': '0:01:23'})
-        offset = 1
+        index = 1
         text = 'some text'
-        trmnl.write_line(offset, text, print_text=True)
-        assign_id_patch.assert_called_once_with(offset, text)
+        trmnl.write_line(index, text)
+        assign_id_patch.assert_called_once_with(index, text)
 
     @patch('mp4ansi.Terminal.get_progress_text', return_value='something')
     @patch('mp4ansi.Terminal.write')
     def test__write_line_Should_ReturnAndCallExpected_When_GetProgressTextReturnsSomething(self, write_patch, *patches):
         config = {'progress_bar': {'total': 8001, 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
-        offset = 3
+        index = 3
         text = 'processed 8001'
-        trmnl.write_line(offset, text)
+        trmnl.write_line(index, text)
         write_patch.assert_called()
 
     @patch('mp4ansi.Terminal.sanitize')
     @patch('mp4ansi.Terminal.write')
     def test__write_line_Should_ReturnAndCallExpected_When_NoProgressBar(self, write_patch, sanitize_patch, *patches):
         trmnl = Terminal(13)
-        offset = 3
+        index = 3
         text = 'processed 8001'
-        trmnl.write_line(offset, text)
+        trmnl.write_line(index, text)
         write_patch.assert_called()
         sanitize_patch.assert_called_once_with(text)
 
@@ -250,19 +250,20 @@ class TestTerminal(unittest.TestCase):
     def test__write_line_Should_CallExpected_When_IdAssignedProgressBar(self, assign_id_patch, write_patch, *patches):
         config = {'id_regex': r'^processor id (?P<value>.*)$', 'progress_bar': {'total': 8001, 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
-        offset = 1
+        index = 1
         text = 'processor id 121372'
-        trmnl.write_line(offset, text)
-        assign_id_patch.assert_called_once_with(offset, text)
+        trmnl.write_line(index, text)
+        assign_id_patch.assert_called_once_with(index, text)
         write_patch.assert_called()
 
     @patch('mp4ansi.Terminal.sanitize')
     @patch('mp4ansi.Terminal.write')
-    def test__write_line_Should_ReturnAndCallExpected_When_PrintTextAndFinal(self, write_patch, sanitize_patch, *patches):
+    def test__write_line_Should_ReturnAndCallExpected_When_PrintTextAndAddDuration(self, write_patch, sanitize_patch, *patches):
+        sanitize_patch.return_value = '--sanitized-text--'
         trmnl = Terminal(13, durations={'3': '0:01:23'})
-        offset = 3
+        index = 3
         text = 'processed 8001'
-        trmnl.write_line(offset, text, print_text=True, final=True)
+        trmnl.write_line(index, text, add_duration=True)
         write_patch.assert_called()
         self.assertEqual(write_patch.mock_calls[0][1][2], f'{sanitize_patch.return_value} - 0:01:23')
         sanitize_patch.assert_called_once_with(text)
@@ -274,8 +275,8 @@ class TestTerminal(unittest.TestCase):
         stderr_patch.isatty.return_value = True
         trmnl = Terminal(13, create=False)
         trmnl.current = 0
-        offset = 3
-        trmnl.write(offset, None, None)
+        index = 3
+        trmnl.write(index, None, None)
         print_patch.assert_called_once_with(get_move_char_patch.return_value, file=stderr_patch)
 
     @patch('mp4ansi.terminal.sys.stderr')
@@ -285,10 +286,10 @@ class TestTerminal(unittest.TestCase):
         stderr_patch.isatty.return_value = True
         trmnl = Terminal(13, create=True)
         trmnl.current = 0
-        offset = 3
+        index = 3
         id_ = '123456'
         text = 'hello world'
-        trmnl.write(offset, id_, text)
+        trmnl.write(index, id_, text)
         self.assertTrue(call(f"{id_}: {text}", file=stderr_patch) in print_patch.mock_calls)
 
     @patch('mp4ansi.terminal.sys.stderr')
@@ -297,10 +298,10 @@ class TestTerminal(unittest.TestCase):
         stderr_patch.isatty.return_value = False
         trmnl = Terminal(13, create=True)
         trmnl.current = 0
-        offset = 3
+        index = 3
         id_ = '123456'
         text = 'hello world'
-        trmnl.write(offset, id_, text)
+        trmnl.write(index, id_, text)
         print_patch.assert_not_called()
 
     @patch('mp4ansi.Terminal.move_up')
@@ -344,7 +345,7 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.write_line')
     def test__write_lines_Should_CallExpected_When_CurrentIsNone(self, write_line_patch, *patches):
         trmnl = Terminal(3)
-        trmnl.write_lines(print_text=True)
+        trmnl.write_lines()
         self.assertEqual(len(write_line_patch.mock_calls), 3)
         self.assertEqual(trmnl.current, 0)
 
@@ -352,7 +353,7 @@ class TestTerminal(unittest.TestCase):
     def test__write_lines_Should_CallExpected_When_CurrentIsNotNone(self, write_line_patch, *patches):
         trmnl = Terminal(3)
         trmnl.current = 0
-        trmnl.write_lines(print_text=True)
+        trmnl.write_lines()
         self.assertEqual(len(write_line_patch.mock_calls), 3)
 
     def test__sanitize_Should_ReturnExpected_When_LessThanMaxChars(self, *patches):
