@@ -95,7 +95,7 @@ class TestMP4ansi(unittest.TestCase):
         client = self.get_client()
         client.execute_run()
         client.terminal.cursor.assert_called_once_with(hide=True)
-        client.terminal.write_lines.assert_called_once_with(print_text=True)
+        client.terminal.write_lines.assert_called_once_with()
         execute_run_patch.assert_called_once_with()
 
     @patch('mp4ansi.mp4ansi.Terminal')

@@ -24,13 +24,13 @@ ID_WIDTH = 30
 class Terminal():
     """ simple ANSI terminal
         represented internally as a list of dictionaries
-        ability to move up or down and print text at different offsets
+        ability to move up or down and print text at specified index
     """
-    def __init__(self, lines, config=None, durations=None, create=True):
+    def __init__(self, number_of_lines, config=None, durations=None, create=True):
         """ class constructor
         """
         logger.debug('executing Terminal constructor')
-        self.validate_lines(lines)
+        self.validate_lines(number_of_lines)
         if not config:
             config = {}
         self.validate_config(config)
@@ -39,12 +39,12 @@ class Terminal():
         self.current = None
         self.durations = durations
         if create:
-            self.terminal = self.create(lines)
+            self.terminal = self.create(number_of_lines)
 
-    def validate_lines(self, lines):
-        """ validate lines
+    def validate_lines(self, number_of_lines):
+        """ validate number_of_lines
         """
-        if lines < 0 or lines > MAX_LINES:
+        if number_of_lines < 0 or number_of_lines > MAX_LINES:
             raise ValueError(f'lines must be between 1-{MAX_LINES}')
 
     def validate_config(self, config):
@@ -60,17 +60,18 @@ class Terminal():
             if not isinstance(config['progress_bar']['total'], (str, int)):
                 raise ValueError('progress_bar.total must be an integer or string')
 
-    def create(self, lines):
+    def create(self, number_of_lines):
         """ return list of dictionaries representing terminal for config
         """
         logger.debug('creating terminal')
         terminal = []
-        zfill = len(str(lines))
-        for index in range(lines):
+        zfill = len(str(number_of_lines))
+        for index in range(number_of_lines):
             item = {
                 'id': str(index).zfill(zfill),
                 'text': ''
             }
+            # progress bar requires additional metadata
             if self.config.get('progress_bar'):
                 item['count'] = 0
                 item['modulus_count'] = 0
@@ -86,8 +87,8 @@ class Terminal():
             return ID_WIDTH
         return id_width
 
-    def assign_id(self, offset, text):
-        """ assign id for offset using id_regex from config
+    def assign_id(self, index, text):
+        """ assign id for index using id_regex from config
         """
         regex_id = self.config['id_regex']
         match_id = re.match(regex_id, text)
@@ -99,120 +100,120 @@ class Terminal():
                     value = f'...{value[-(id_width - 3):]}'
                 else:
                     value = value.rjust(id_width)
-            self.terminal[offset]['id'] = value
+            self.terminal[index]['id'] = value
             return value
 
-    def assign_total(self, offset, text):
-        """ assign total for offset using total from config
+    def assign_total(self, index, text):
+        """ assign total for index using total from config
         """
         if isinstance(self.config['progress_bar']['total'], str):
             regex_total = self.config['progress_bar']['total']
             match_total = re.match(regex_total, text)
             if match_total:
-                self.terminal[offset]['total'] = int(match_total.group('value'))
+                self.terminal[index]['total'] = int(match_total.group('value'))
         else:
-            self.terminal[offset]['total'] = self.config['progress_bar']['total']
+            self.terminal[index]['total'] = self.config['progress_bar']['total']
 
-        if self.terminal[offset]['total']:
-            self.terminal[offset]['modulus'] = round(self.terminal[offset]['total'] / PROGRESS_BAR_WIDTH)
-            # in case total less than progress bar width then lets set total to 1 to avoid divide by zero
-            if self.terminal[offset]['modulus'] == 0:
-                self.terminal[offset]['modulus'] = 1
+        if self.terminal[index]['total']:
+            self.terminal[index]['modulus'] = round(self.terminal[index]['total'] / PROGRESS_BAR_WIDTH)
+            # in case total less than progress bar width then lets set modulus to 1 to avoid divide by zero
+            if self.terminal[index]['modulus'] == 0:
+                self.terminal[index]['modulus'] = 1
 
-    def get_identifier(self, offset, text):
-        """ return tuple identifier and if it was assigned
+    def get_identifier(self, index, text):
+        """ return tuple identifier and boolean indicating if it was assigned
         """
         assigned = False
         if self.config.get('id_regex'):
-            if self.assign_id(offset, text) is not None:
+            if self.assign_id(index, text) is not None:
                 assigned = True
-        return self.terminal[offset]['id'], assigned
+        return self.terminal[index]['id'], assigned
 
-    def get_progress_text(self, offset, text):
+    def get_progress_text(self, index, text):
         """ process progress bar
         """
-        if not self.terminal[offset]['total']:
-            self.assign_total(offset, text)
+        if not self.terminal[index]['total']:
+            self.assign_total(index, text)
 
-        if self.terminal[offset]['count'] == self.terminal[offset]['total']:
-            message = self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
-            return message
+        if self.terminal[index]['count'] == self.terminal[index]['total']:
+            return self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
 
         regex_count = self.config['progress_bar']['count_regex']
         match_count = re.match(regex_count, text)
         if match_count:
-            self.terminal[offset]['count'] += 1
-            self.terminal[offset]['modulus_count'] = round(round(self.terminal[offset]['count'] / self.terminal[offset]['total'], 2) * PROGRESS_BAR_WIDTH)
-            progress = PROGRESS_TICKER * self.terminal[offset]['modulus_count']
-            padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[offset]['modulus_count'])
-            percentage = str(round((self.terminal[offset]['count'] / self.terminal[offset]['total']) * 100)).rjust(3)
-            indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
+            self.terminal[index]['count'] += 1
+            self.terminal[index]['modulus_count'] = round(round(self.terminal[index]['count'] / self.terminal[index]['total'], 2) * PROGRESS_BAR_WIDTH)
+            progress = PROGRESS_TICKER * self.terminal[index]['modulus_count']
+            padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[index]['modulus_count'])
+            percentage = str(round((self.terminal[index]['count'] / self.terminal[index]['total']) * 100)).rjust(3)
+            indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}"
             return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
 
-    def write_line(self, offset, text, print_text=False, final=False):
-        """ write line at offset
+    def write_line(self, index, text, add_duration=False, force=False):
+        """ write line at index
         """
-        identifier, identifer_assigned = self.get_identifier(offset, text)
-        if self.config.get('progress_bar') and not print_text:
-            text_to_print = self.get_progress_text(offset, text)
+        identifier, identifer_assigned = self.get_identifier(index, text)
+        if self.config.get('progress_bar'):
+            text_to_print = self.get_progress_text(index, text)
             if not text_to_print and identifer_assigned:
                 # ensure id is written to terminal when it is assigned
                 text_to_print = ''
         else:
-            if final:
-                text_to_print = f"{self.sanitize(text)} - {self.durations.get(str(offset), '')}"
-            else:
-                text_to_print = f'{self.sanitize(text)}'
+            text_to_print = self.sanitize(text)
+
+        if add_duration and text_to_print is not None:
+            duration = self.durations.get(str(index), '')
+            text_to_print += f" - {duration}"
 
         id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
-        self.write(offset, id_to_print, text_to_print, final=final)
+        self.write(index, id_to_print, text_to_print, force=force)
 
-    def write(self, offset, identifier, text, final=False):
-        """ move to offset and write identifier and text
+    def write(self, index, identifier, text, force=False):
+        """ move to index and write identifier and text
         """
-        if sys.stderr.isatty() or final:
-            move_char = self.get_move_char(offset)
+        if sys.stderr.isatty() or force:
+            move_char = self.get_move_char(index)
             if text is None:
                 print(move_char, file=sys.stderr)
             else:
-                self.terminal[offset]['text'] = text
+                self.terminal[index]['text'] = text
                 print(f'{move_char}{CLEAR_EOL}', end='', file=sys.stderr)
                 print(f"{identifier}: {text}", file=sys.stderr)
             sys.stderr.flush()
             self.current += 1
 
-    def get_move_char(self, offset):
-        """ return move char to move to offset
+    def get_move_char(self, index):
+        """ return char to move to index
         """
         move_char = ''
-        if offset < self.current:
-            move_char = self.move_up(offset)
-        elif offset > self.current:
-            move_char = self.move_down(offset)
+        if index < self.current:
+            move_char = self.move_up(index)
+        elif index > self.current:
+            move_char = self.move_down(index)
         return move_char
 
-    def move_down(self, offset):
-        """ return down to offset
+    def move_down(self, index):
+        """ return char to move down to index and update current
         """
-        diff = offset - self.current
+        diff = index - self.current
         self.current += diff
         return Cursor.DOWN(diff)
 
-    def move_up(self, offset):
-        """ return up to offset
+    def move_up(self, index):
+        """ return char to move up to index and update current
         """
-        diff = self.current - offset
+        diff = self.current - index
         self.current -= diff
         return Cursor.UP(diff)
 
-    def write_lines(self, print_text=False, final=False):
+    def write_lines(self, add_duration=False, force=False):
         """ write lines to terminal
         """
         logger.debug('writing terminal')
         if self.current is None:
             self.current = 0
-        for offset, item in enumerate(self.terminal):
-            self.write_line(offset, item['text'], print_text=print_text, final=final)
+        for index, item in enumerate(self.terminal):
+            self.write_line(index, item['text'], add_duration=add_duration, force=force)
 
     def sanitize(self, text):
         """ sanitize text
