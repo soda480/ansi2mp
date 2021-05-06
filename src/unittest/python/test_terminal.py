@@ -164,7 +164,8 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.assign_total')
     def test__get_progress_text_Should_ReturnExpected_When_CountIsEqualToTotal(self, *patches):
         config = {'progress_bar': {'total': 121372, 'count_regex': '-regex-'}}
-        trmnl = Terminal(13, config=config)
+        durations = {'3': '0:03:23'}
+        trmnl = Terminal(13, config=config, durations=durations)
         offset = 3
         trmnl.terminal[offset]['count'] = 121372
         trmnl.terminal[offset]['total'] = 121372
@@ -213,67 +214,94 @@ class TestTerminal(unittest.TestCase):
         self.assertTrue('8001/8001' in result)
         self.assertTrue('100%' in result)
 
-    @patch('mp4ansi.Terminal.write_line')
+    @patch('mp4ansi.Terminal.write')
     @patch('mp4ansi.Terminal.assign_id')
-    def test__write_text_Should_CallAssignId_When_IdRegexAndNotIdMatched(self, assign_id_patch, *patches):
+    def test__write_line_Should_CallAssignId_When_IdRegexAndNotIdMatched(self, assign_id_patch, *patches):
         config = {'id_regex': r'^processor id (?P<value>.*)$'}
-        trmnl = Terminal(13, config=config)
+        trmnl = Terminal(13, config=config, durations={'1': '0:01:23'})
         offset = 1
         text = 'some text'
-        trmnl.write_text(offset, text, ignore_progress=True)
+        trmnl.write_line(offset, text, print_text=True)
         assign_id_patch.assert_called_once_with(offset, text)
 
     @patch('mp4ansi.Terminal.get_progress_text', return_value='something')
-    @patch('mp4ansi.Terminal.write_line')
-    def test__write_text_Should_ReturnAndCallExpected_When_GetProgressTextReturnsSomething(self, write_line_patch, *patches):
+    @patch('mp4ansi.Terminal.write')
+    def test__write_line_Should_ReturnAndCallExpected_When_GetProgressTextReturnsSomething(self, write_patch, *patches):
         config = {'progress_bar': {'total': 8001, 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
         offset = 3
         text = 'processed 8001'
-        trmnl.write_text(offset, text)
-        write_line_patch.assert_called()
+        trmnl.write_line(offset, text)
+        write_patch.assert_called()
 
     @patch('mp4ansi.Terminal.sanitize')
-    @patch('mp4ansi.Terminal.write_line')
-    def test__write_text_Should_ReturnAndCallExpected_When_NoProgressBar(self, write_line_patch, sanitize_patch, *patches):
+    @patch('mp4ansi.Terminal.write')
+    def test__write_line_Should_ReturnAndCallExpected_When_NoProgressBar(self, write_patch, sanitize_patch, *patches):
         trmnl = Terminal(13)
         offset = 3
         text = 'processed 8001'
-        trmnl.write_text(offset, text)
-        write_line_patch.assert_called()
+        trmnl.write_line(offset, text)
+        write_patch.assert_called()
         sanitize_patch.assert_called_once_with(text)
 
     @patch('mp4ansi.Terminal.get_progress_text', return_value=None)
-    @patch('mp4ansi.Terminal.write_line')
+    @patch('mp4ansi.Terminal.write')
     @patch('mp4ansi.Terminal.assign_id')
-    def test__write_text_Should_CallExpected_When_IdAssignedProgressBar(self, assign_id_patch, write_line_patch, *patches):
+    def test__write_line_Should_CallExpected_When_IdAssignedProgressBar(self, assign_id_patch, write_patch, *patches):
         config = {'id_regex': r'^processor id (?P<value>.*)$', 'progress_bar': {'total': 8001, 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
         offset = 1
         text = 'processor id 121372'
-        trmnl.write_text(offset, text)
+        trmnl.write_line(offset, text)
         assign_id_patch.assert_called_once_with(offset, text)
-        write_line_patch.assert_called()
+        write_patch.assert_called()
 
+    @patch('mp4ansi.Terminal.sanitize')
+    @patch('mp4ansi.Terminal.write')
+    def test__write_line_Should_ReturnAndCallExpected_When_PrintTextAndFinal(self, write_patch, sanitize_patch, *patches):
+        trmnl = Terminal(13, durations={'3': '0:01:23'})
+        offset = 3
+        text = 'processed 8001'
+        trmnl.write_line(offset, text, print_text=True, final=True)
+        write_patch.assert_called()
+        self.assertEqual(write_patch.mock_calls[0][1][2], f'{sanitize_patch.return_value} - 0:01:23')
+        sanitize_patch.assert_called_once_with(text)
+
+    @patch('mp4ansi.terminal.sys.stderr')
     @patch('mp4ansi.Terminal.get_move_char')
     @patch('builtins.print')
-    def test__write_line_Should_CallExpected_When_NoText(self, print_patch, get_move_char_patch, *patches):
+    def test__write_Should_CallExpected_When_NoText(self, print_patch, get_move_char_patch, stderr_patch, *patches):
+        stderr_patch.isatty.return_value = True
         trmnl = Terminal(13, create=False)
         trmnl.current = 0
         offset = 3
-        trmnl.write_line(offset, None, None)
-        print_patch.assert_called_once_with(get_move_char_patch.return_value)
+        trmnl.write(offset, None, None)
+        print_patch.assert_called_once_with(get_move_char_patch.return_value, file=stderr_patch)
 
+    @patch('mp4ansi.terminal.sys.stderr')
     @patch('mp4ansi.Terminal.get_move_char')
     @patch('builtins.print')
-    def test__write_line_Should_CallExpected_When_Text(self, print_patch, get_move_char_patch, *patches):
+    def test__write_Should_CallExpected_When_Text(self, print_patch, get_move_char_patch, stderr_patch, *patches):
+        stderr_patch.isatty.return_value = True
         trmnl = Terminal(13, create=True)
         trmnl.current = 0
         offset = 3
         id_ = '123456'
         text = 'hello world'
-        trmnl.write_line(offset, id_, text)
-        self.assertTrue(call(f"{id_}: {text}") in print_patch.mock_calls)
+        trmnl.write(offset, id_, text)
+        self.assertTrue(call(f"{id_}: {text}", file=stderr_patch) in print_patch.mock_calls)
+
+    @patch('mp4ansi.terminal.sys.stderr')
+    @patch('builtins.print')
+    def test__write_Should_CallExpected_When_Notty(self, print_patch, stderr_patch, *patches):
+        stderr_patch.isatty.return_value = False
+        trmnl = Terminal(13, create=True)
+        trmnl.current = 0
+        offset = 3
+        id_ = '123456'
+        text = 'hello world'
+        trmnl.write(offset, id_, text)
+        print_patch.assert_not_called()
 
     @patch('mp4ansi.Terminal.move_up')
     def test__get_move_char_Should_ReturnExpected_When_MovingUp(self, move_up_patch, *patches):
@@ -313,19 +341,19 @@ class TestTerminal(unittest.TestCase):
         self.assertEqual(result, up_patch.return_value)
         self.assertEqual(trmnl.current, 7)
 
-    @patch('mp4ansi.Terminal.write_text')
-    def test__write_Should_CallExpected_When_CurrentIsNone(self, write_text_patch, *patches):
+    @patch('mp4ansi.Terminal.write_line')
+    def test__write_lines_Should_CallExpected_When_CurrentIsNone(self, write_line_patch, *patches):
         trmnl = Terminal(3)
-        trmnl.write(ignore_progress=True)
-        self.assertEqual(len(write_text_patch.mock_calls), 3)
+        trmnl.write_lines(print_text=True)
+        self.assertEqual(len(write_line_patch.mock_calls), 3)
         self.assertEqual(trmnl.current, 0)
 
-    @patch('mp4ansi.Terminal.write_text')
-    def test__write_Should_CallExpected_When_CurrentIsNotNone(self, write_text_patch, *patches):
+    @patch('mp4ansi.Terminal.write_line')
+    def test__write_lines_Should_CallExpected_When_CurrentIsNotNone(self, write_line_patch, *patches):
         trmnl = Terminal(3)
         trmnl.current = 0
-        trmnl.write(ignore_progress=True)
-        self.assertEqual(len(write_text_patch.mock_calls), 3)
+        trmnl.write_lines(print_text=True)
+        self.assertEqual(len(write_line_patch.mock_calls), 3)
 
     def test__sanitize_Should_ReturnExpected_When_LessThanMaxChars(self, *patches):
         trmnl = Terminal(3, create=False)
@@ -346,17 +374,29 @@ class TestTerminal(unittest.TestCase):
         result = trmnl.sanitize(text)
         self.assertEqual(result, text)
 
+    @patch('mp4ansi.terminal.sys.stderr')
     @patch('builtins.print')
-    def test__cursor_Should_CallExpected_When_Hide(self, print_patch, *patches):
+    def test__cursor_Should_CallExpected_When_Hide(self, print_patch, stderr_patch, *patches):
+        stderr_patch.isatty.return_value = True
         trmnl = Terminal(3, create=False)
         trmnl.cursor()
-        print_patch.assert_called_once_with(HIDE_CURSOR, end='')
+        print_patch.assert_called_once_with(HIDE_CURSOR, end='', file=stderr_patch)
 
+    @patch('mp4ansi.terminal.sys.stderr')
     @patch('builtins.print')
-    def test__cursor_Should_CallExpected_When_NoHide(self, print_patch, *patches):
+    def test__cursor_Should_CallExpected_When_NoHide(self, print_patch, stderr_patch, *patches):
+        stderr_patch.isatty.return_value = True
         trmnl = Terminal(3, create=False)
         trmnl.cursor(hide=False)
-        print_patch.assert_called_once_with(SHOW_CURSOR, end='')
+        print_patch.assert_called_once_with(SHOW_CURSOR, end='', file=stderr_patch)
+
+    @patch('mp4ansi.terminal.sys.stderr')
+    @patch('builtins.print')
+    def test__cursor_Should_CallExpected_When_NoAtty(self, print_patch, stderr_patch, *patches):
+        stderr_patch.isatty.return_value = False
+        trmnl = Terminal(3, create=False)
+        trmnl.cursor(hide=False)
+        print_patch.assert_not_called()
 
     def test__get_id_width_Should_ReturnDefault_When_NoIdWidthInConfig(self, *patches):
         trmnl = Terminal(3, create=False, config={'id_regex': 'regex'})

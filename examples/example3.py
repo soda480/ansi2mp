@@ -15,7 +15,15 @@ def configure_logging():
     rootLogger = logging.getLogger()
     # must be set to this level so handlers can filter from this level
     rootLogger.setLevel(logging.DEBUG)
-    file_handler = logging.FileHandler('example1.log')
+
+    # stream_handler = logging.StreamHandler()
+    # formatter = '%(asctime)s %(processName)s %(name)s [%(funcName)s] %(levelname)s %(message)s'
+    # stream_formatter = logging.Formatter(formatter)
+    # stream_handler.setFormatter(stream_formatter)
+    # stream_handler.setLevel(logging.DEBUG)
+    # rootLogger.addHandler(stream_handler)
+
+    file_handler = logging.FileHandler('example3.log')
     file_formatter = logging.Formatter("%(asctime)s %(processName)s [%(funcName)s] %(levelname)s %(message)s")
     file_handler.setFormatter(file_formatter)
     file_handler.setLevel(logging.DEBUG)
@@ -34,11 +42,11 @@ def get_process_data(count):
 def do_something(*args):
     uuid = args[0]['uuid']
     logger.debug(f'processor id {uuid}')
-    total = randint(1000, 9000)
+    total = randint(4000, 10000)
     logger.debug(f'processing total of {total}')
     for index in range(total):
         logger.debug(f'processed {index}')
-        sleep(.001)
+        # sleep(.001)
     return total
 
 

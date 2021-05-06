@@ -26,7 +26,7 @@ class Terminal():
         represented internally as a list of dictionaries
         ability to move up or down and print text at different offsets
     """
-    def __init__(self, lines, config=None, create=True):
+    def __init__(self, lines, config=None, durations=None, create=True):
         """ class constructor
         """
         logger.debug('executing Terminal constructor')
@@ -37,6 +37,7 @@ class Terminal():
         self.config = config
         colorama_init()
         self.current = None
+        self.durations = durations
         if create:
             self.terminal = self.create(lines)
 
@@ -148,32 +149,37 @@ class Terminal():
             indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
             return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
 
-    def write_text(self, offset, text, ignore_progress=False):
-        """ write text at offset
+    def write_line(self, offset, text, print_text=False, final=False):
+        """ write line at offset
         """
         identifier, identifer_assigned = self.get_identifier(offset, text)
-        if self.config.get('progress_bar') and not ignore_progress:
+        if self.config.get('progress_bar') and not print_text:
             text_to_print = self.get_progress_text(offset, text)
             if not text_to_print and identifer_assigned:
                 # ensure id is written to terminal when it is assigned
                 text_to_print = ''
         else:
-            text_to_print = self.sanitize(text)
+            if final:
+                text_to_print = f"{self.sanitize(text)} - {self.durations.get(str(offset), '')}"
+            else:
+                text_to_print = f'{self.sanitize(text)}'
 
         id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
-        self.write_line(offset, id_to_print, text_to_print)
+        self.write(offset, id_to_print, text_to_print, final=final)
 
-    def write_line(self, offset, identifier, text):
+    def write(self, offset, identifier, text, final=False):
         """ move to offset and write identifier and text
         """
-        move_char = self.get_move_char(offset)
-        if text is None:
-            print(move_char)
-        else:
-            self.terminal[offset]['text'] = text
-            print(f'{move_char}{CLEAR_EOL}', end='')
-            print(f"{identifier}: {text}")
-        self.current += 1
+        if sys.stderr.isatty() or final:
+            move_char = self.get_move_char(offset)
+            if text is None:
+                print(move_char, file=sys.stderr)
+            else:
+                self.terminal[offset]['text'] = text
+                print(f'{move_char}{CLEAR_EOL}', end='', file=sys.stderr)
+                print(f"{identifier}: {text}", file=sys.stderr)
+            sys.stderr.flush()
+            self.current += 1
 
     def get_move_char(self, offset):
         """ return move char to move to offset
@@ -199,14 +205,14 @@ class Terminal():
         self.current -= diff
         return Cursor.UP(diff)
 
-    def write(self, ignore_progress=False):
-        """ write lines to screen
+    def write_lines(self, print_text=False, final=False):
+        """ write lines to terminal
         """
         logger.debug('writing terminal')
         if self.current is None:
             self.current = 0
         for offset, item in enumerate(self.terminal):
-            self.write_text(offset, item['text'], ignore_progress=ignore_progress)
+            self.write_line(offset, item['text'], print_text=print_text, final=final)
 
     def sanitize(self, text):
         """ sanitize text
@@ -220,7 +226,8 @@ class Terminal():
     def cursor(self, hide=True):
         """ show or hide cursor
         """
-        if hide:
-            print(HIDE_CURSOR, end='')
-        else:
-            print(SHOW_CURSOR, end='')
+        if sys.stderr.isatty():
+            if hide:
+                print(HIDE_CURSOR, end='', file=sys.stderr)
+            else:
+                print(SHOW_CURSOR, end='', file=sys.stderr)

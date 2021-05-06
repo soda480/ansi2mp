@@ -26,5 +26,6 @@ config = {
     }
 }
 print('Procesing items...')
-MP4ansi(function=do_work, process_data=process_data, config=config).execute()
+mp4ansi = MP4ansi(function=do_work, process_data=process_data, config=config)
+mp4ansi.execute()
 print(f"Total items processed {sum([item['result'] for item in process_data])}")
