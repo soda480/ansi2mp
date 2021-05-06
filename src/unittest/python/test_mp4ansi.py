@@ -49,7 +49,7 @@ class TestMP4ansi(unittest.TestCase):
         process_data = [{'id': 1}, {'id': 2}]
         config = {'key': 'value'}
         client = MP4ansi(function=Mock(__name__='mockfunc'), process_data=process_data, config=config)
-        terminal_patch.assert_called_once_with(len(process_data), config=config)
+        terminal_patch.assert_called_once_with(len(process_data), config=config, durations={})
         self.assertEqual(client.terminal, terminal_patch.return_value)
 
     @patch('mp4ansi.mp4ansi.MPmq.get_message')
@@ -95,7 +95,7 @@ class TestMP4ansi(unittest.TestCase):
         client = self.get_client()
         client.execute_run()
         client.terminal.cursor.assert_called_once_with(hide=True)
-        client.terminal.write_lines.assert_called_once_with(ignore_progress=True)
+        client.terminal.write_lines.assert_called_once_with(print_text=True)
         execute_run_patch.assert_called_once_with()
 
     @patch('mp4ansi.mp4ansi.Terminal')

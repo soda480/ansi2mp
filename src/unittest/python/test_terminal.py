@@ -164,7 +164,8 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.assign_total')
     def test__get_progress_text_Should_ReturnExpected_When_CountIsEqualToTotal(self, *patches):
         config = {'progress_bar': {'total': 121372, 'count_regex': '-regex-'}}
-        trmnl = Terminal(13, config=config)
+        durations = {'3': '0:03:23'}
+        trmnl = Terminal(13, config=config, durations=durations)
         offset = 3
         trmnl.terminal[offset]['count'] = 121372
         trmnl.terminal[offset]['total'] = 121372
@@ -217,10 +218,10 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.assign_id')
     def test__write_line_Should_CallAssignId_When_IdRegexAndNotIdMatched(self, assign_id_patch, *patches):
         config = {'id_regex': r'^processor id (?P<value>.*)$'}
-        trmnl = Terminal(13, config=config)
+        trmnl = Terminal(13, config=config, durations={'1': '0:01:23'})
         offset = 1
         text = 'some text'
-        trmnl.write_line(offset, text, ignore_progress=True)
+        trmnl.write_line(offset, text, print_text=True)
         assign_id_patch.assert_called_once_with(offset, text)
 
     @patch('mp4ansi.Terminal.get_progress_text', return_value='something')
@@ -254,6 +255,17 @@ class TestTerminal(unittest.TestCase):
         trmnl.write_line(offset, text)
         assign_id_patch.assert_called_once_with(offset, text)
         write_patch.assert_called()
+
+    @patch('mp4ansi.Terminal.sanitize')
+    @patch('mp4ansi.Terminal.write')
+    def test__write_line_Should_ReturnAndCallExpected_When_PrintTextAndFinal(self, write_patch, sanitize_patch, *patches):
+        trmnl = Terminal(13, durations={'3': '0:01:23'})
+        offset = 3
+        text = 'processed 8001'
+        trmnl.write_line(offset, text, print_text=True, final=True)
+        write_patch.assert_called()
+        self.assertEqual(write_patch.mock_calls[0][1][2], f'{sanitize_patch.return_value} - 0:01:23')
+        sanitize_patch.assert_called_once_with(text)
 
     @patch('mp4ansi.terminal.sys.stderr')
     @patch('mp4ansi.Terminal.get_move_char')
@@ -332,7 +344,7 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.write_line')
     def test__write_lines_Should_CallExpected_When_CurrentIsNone(self, write_line_patch, *patches):
         trmnl = Terminal(3)
-        trmnl.write_lines(ignore_progress=True)
+        trmnl.write_lines(print_text=True)
         self.assertEqual(len(write_line_patch.mock_calls), 3)
         self.assertEqual(trmnl.current, 0)
 
@@ -340,7 +352,7 @@ class TestTerminal(unittest.TestCase):
     def test__write_lines_Should_CallExpected_When_CurrentIsNotNone(self, write_line_patch, *patches):
         trmnl = Terminal(3)
         trmnl.current = 0
-        trmnl.write_lines(ignore_progress=True)
+        trmnl.write_lines(print_text=True)
         self.assertEqual(len(write_line_patch.mock_calls), 3)
 
     def test__sanitize_Should_ReturnExpected_When_LessThanMaxChars(self, *patches):

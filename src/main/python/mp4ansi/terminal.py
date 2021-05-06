@@ -26,7 +26,7 @@ class Terminal():
         represented internally as a list of dictionaries
         ability to move up or down and print text at different offsets
     """
-    def __init__(self, lines, config=None, create=True):
+    def __init__(self, lines, config=None, durations=None, create=True):
         """ class constructor
         """
         logger.debug('executing Terminal constructor')
@@ -37,6 +37,7 @@ class Terminal():
         self.config = config
         colorama_init()
         self.current = None
+        self.durations = durations
         if create:
             self.terminal = self.create(lines)
 
@@ -148,25 +149,28 @@ class Terminal():
             indicator = f"{self.terminal[offset]['count']}/{self.terminal[offset]['total']}"
             return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
 
-    def write_line(self, offset, text, ignore_progress=False):
+    def write_line(self, offset, text, print_text=False, final=False):
         """ write line at offset
         """
         identifier, identifer_assigned = self.get_identifier(offset, text)
-        if self.config.get('progress_bar') and not ignore_progress:
+        if self.config.get('progress_bar') and not print_text:
             text_to_print = self.get_progress_text(offset, text)
             if not text_to_print and identifer_assigned:
                 # ensure id is written to terminal when it is assigned
                 text_to_print = ''
         else:
-            text_to_print = self.sanitize(text)
+            if final:
+                text_to_print = f"{self.sanitize(text)} - {self.durations.get(str(offset), '')}"
+            else:
+                text_to_print = f'{self.sanitize(text)}'
 
         id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
-        self.write(offset, id_to_print, text_to_print)
+        self.write(offset, id_to_print, text_to_print, final=final)
 
-    def write(self, offset, identifier, text):
+    def write(self, offset, identifier, text, final=False):
         """ move to offset and write identifier and text
         """
-        if sys.stderr.isatty():
+        if sys.stderr.isatty() or final:
             move_char = self.get_move_char(offset)
             if text is None:
                 print(move_char, file=sys.stderr)
@@ -201,14 +205,14 @@ class Terminal():
         self.current -= diff
         return Cursor.UP(diff)
 
-    def write_lines(self, ignore_progress=False):
+    def write_lines(self, print_text=False, final=False):
         """ write lines to terminal
         """
         logger.debug('writing terminal')
         if self.current is None:
             self.current = 0
         for offset, item in enumerate(self.terminal):
-            self.write_line(offset, item['text'], ignore_progress=ignore_progress)
+            self.write_line(offset, item['text'], print_text=print_text, final=final)
 
     def sanitize(self, text):
         """ sanitize text

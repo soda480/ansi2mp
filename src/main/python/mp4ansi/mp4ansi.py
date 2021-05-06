@@ -22,7 +22,7 @@ class MP4ansi(MPmq):
         config = kwargs.pop('config', None)
         # call parent constructor
         super(MP4ansi, self).__init__(*args, **kwargs)
-        self.terminal = Terminal(len(self.process_data), config=config)
+        self.terminal = Terminal(len(self.process_data), config=config, durations=self.durations)
 
     def get_message(self):
         """ return message from top of message queue
@@ -57,7 +57,7 @@ class MP4ansi(MPmq):
         """
         logger.debug('executing run task wrapper')
         self.terminal.cursor(hide=True)
-        self.terminal.write_lines(ignore_progress=True)
+        self.terminal.write_lines(print_text=True)
         # call parent method
         super(MP4ansi, self).execute_run()
 
@@ -66,5 +66,5 @@ class MP4ansi(MPmq):
             override parent class method
         """
         logger.debug('executing final task')
-        self.terminal.write_lines(ignore_progress=True)
+        self.terminal.write_lines(print_text=True, final=True)
         self.terminal.cursor(hide=False)
