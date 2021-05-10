@@ -36,7 +36,7 @@ class Terminal():
         self.validate_config(config)
         self.config = config
         colorama_init()
-        self.current = None
+        self.current = 0
         self.durations = durations
         if create:
             self.terminal = self.create(number_of_lines)
@@ -84,7 +84,7 @@ class Terminal():
         """
         id_width = self.config.get('id_width', ID_WIDTH)
         if id_width > ID_WIDTH:
-            return ID_WIDTH
+            id_width = ID_WIDTH
         return id_width
 
     def assign_id(self, index, text):
@@ -132,22 +132,24 @@ class Terminal():
     def get_progress_text(self, index, text):
         """ process progress bar
         """
+        progress_text = None
         if not self.terminal[index]['total']:
             self.assign_total(index, text)
 
         if self.terminal[index]['count'] == self.terminal[index]['total']:
-            return self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
-
-        regex_count = self.config['progress_bar']['count_regex']
-        match_count = re.match(regex_count, text)
-        if match_count:
-            self.terminal[index]['count'] += 1
-            self.terminal[index]['modulus_count'] = round(round(self.terminal[index]['count'] / self.terminal[index]['total'], 2) * PROGRESS_BAR_WIDTH)
-            progress = PROGRESS_TICKER * self.terminal[index]['modulus_count']
-            padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[index]['modulus_count'])
-            percentage = str(round((self.terminal[index]['count'] / self.terminal[index]['total']) * 100)).rjust(3)
-            indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}"
-            return f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+            progress_text = self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
+        else:
+            regex_count = self.config['progress_bar']['count_regex']
+            match_count = re.match(regex_count, text)
+            if match_count:
+                self.terminal[index]['count'] += 1
+                self.terminal[index]['modulus_count'] = round(round(self.terminal[index]['count'] / self.terminal[index]['total'], 2) * PROGRESS_BAR_WIDTH)
+                progress = PROGRESS_TICKER * self.terminal[index]['modulus_count']
+                padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[index]['modulus_count'])
+                percentage = str(round((self.terminal[index]['count'] / self.terminal[index]['total']) * 100)).rjust(3)
+                indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}"
+                progress_text = f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+        return progress_text
 
     def write_line(self, index, text, add_duration=False, force=False):
         """ write line at index
@@ -210,8 +212,6 @@ class Terminal():
         """ write lines to terminal
         """
         logger.debug('writing terminal')
-        if self.current is None:
-            self.current = 0
         for index, item in enumerate(self.terminal):
             self.write_line(index, item['text'], add_duration=add_duration, force=force)
 
@@ -221,14 +221,17 @@ class Terminal():
         if text:
             text = text.splitlines()[0]
             if len(text) > MAX_CHARS:
-                return f'{text[0:MAX_CHARS - 3]}...'
+                text = f'{text[0:MAX_CHARS - 3]}...'
         return text
 
-    def cursor(self, hide=True):
-        """ show or hide cursor
+    def show_cursor(self):
+        """ show cursor
         """
         if sys.stderr.isatty():
-            if hide:
-                print(HIDE_CURSOR, end='', file=sys.stderr)
-            else:
-                print(SHOW_CURSOR, end='', file=sys.stderr)
+            print(SHOW_CURSOR, end='', file=sys.stderr)
+
+    def hide_cursor(self):
+        """ hide cursor
+        """
+        if sys.stderr.isatty():
+            print(HIDE_CURSOR, end='', file=sys.stderr)

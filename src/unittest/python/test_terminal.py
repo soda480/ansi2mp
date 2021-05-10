@@ -51,7 +51,7 @@ class TestTerminal(unittest.TestCase):
     def test__init__Should_SetAttributes_When_Called(self, create_patch, *patches):
         trmnl = Terminal(4)
         self.assertEqual(trmnl.config, {})
-        self.assertIsNone(trmnl.current)
+        self.assertEqual(trmnl.current, 0)
         self.assertEqual(trmnl.terminal, create_patch.return_value)
 
     @patch('mp4ansi.Terminal.validate_config')
@@ -377,26 +377,34 @@ class TestTerminal(unittest.TestCase):
 
     @patch('mp4ansi.terminal.sys.stderr')
     @patch('builtins.print')
-    def test__cursor_Should_CallExpected_When_Hide(self, print_patch, stderr_patch, *patches):
+    def test__hide_cursor_Should_CallExpected_When_Called(self, print_patch, stderr_patch, *patches):
         stderr_patch.isatty.return_value = True
         trmnl = Terminal(3, create=False)
-        trmnl.cursor()
+        trmnl.hide_cursor()
         print_patch.assert_called_once_with(HIDE_CURSOR, end='', file=stderr_patch)
 
     @patch('mp4ansi.terminal.sys.stderr')
     @patch('builtins.print')
-    def test__cursor_Should_CallExpected_When_NoHide(self, print_patch, stderr_patch, *patches):
+    def test__hide_cursor_Should_CallExpected_When_NoAtty(self, print_patch, stderr_patch, *patches):
+        stderr_patch.isatty.return_value = False
+        trmnl = Terminal(3, create=False)
+        trmnl.hide_cursor()
+        print_patch.assert_not_called()
+
+    @patch('mp4ansi.terminal.sys.stderr')
+    @patch('builtins.print')
+    def test__show_cursor_Should_CallExpected_When_Called(self, print_patch, stderr_patch, *patches):
         stderr_patch.isatty.return_value = True
         trmnl = Terminal(3, create=False)
-        trmnl.cursor(hide=False)
+        trmnl.show_cursor()
         print_patch.assert_called_once_with(SHOW_CURSOR, end='', file=stderr_patch)
 
     @patch('mp4ansi.terminal.sys.stderr')
     @patch('builtins.print')
-    def test__cursor_Should_CallExpected_When_NoAtty(self, print_patch, stderr_patch, *patches):
+    def test__show_cursor_Should_CallExpected_When_NoAtty(self, print_patch, stderr_patch, *patches):
         stderr_patch.isatty.return_value = False
         trmnl = Terminal(3, create=False)
-        trmnl.cursor(hide=False)
+        trmnl.show_cursor()
         print_patch.assert_not_called()
 
     def test__get_id_width_Should_ReturnDefault_When_NoIdWidthInConfig(self, *patches):
