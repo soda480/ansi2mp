@@ -94,7 +94,7 @@ class TestMP4ansi(unittest.TestCase):
     def test__execute_run_Should_CallExpected_When_Called(self, execute_run_patch, *patches):
         client = self.get_client()
         client.execute_run()
-        client.terminal.cursor.assert_called_once_with(hide=True)
+        client.terminal.hide_cursor.assert_called_once_with()
         client.terminal.write_lines.assert_called_once_with()
         execute_run_patch.assert_called_once_with()
 
@@ -102,4 +102,4 @@ class TestMP4ansi(unittest.TestCase):
     def test__final_Should_CallExpected_When_Called(self, terminal_patch, *patches):
         client = self.get_client()
         client.final()
-        client.terminal.cursor.assert_called_once_with(hide=False)
+        client.terminal.show_cursor.assert_called_once_with()

@@ -94,13 +94,13 @@ count = 15
 docgen = DocumentGenerator()
 terminal = Terminal(count)
 terminal.write_lines()
-terminal.cursor(hide=True)
+terminal.hide_cursor()
 for _ in range(800):
     index = random.randint(0, count - 1)
     terminal.write_line(index, docgen.sentence())
     time.sleep(.01)
 terminal.write_lines(force=True)
-terminal.cursor(hide=False)
+terminal.show_cursor()
 ```
 
 Executing the code above ([example5](https://github.com/soda480/mp4ansi/tree/master/examples/example5.py)) results in the following:

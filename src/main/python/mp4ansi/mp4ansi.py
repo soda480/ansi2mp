@@ -56,7 +56,7 @@ class MP4ansi(MPmq):
             override parent class method
         """
         logger.debug('executing run task wrapper')
-        self.terminal.cursor(hide=True)
+        self.terminal.hide_cursor()
         self.terminal.write_lines()
         # call parent method
         super(MP4ansi, self).execute_run()
@@ -67,4 +67,4 @@ class MP4ansi(MPmq):
         """
         logger.debug('executing final task')
         self.terminal.write_lines(add_duration=True, force=True)
-        self.terminal.cursor(hide=False)
+        self.terminal.show_cursor()
