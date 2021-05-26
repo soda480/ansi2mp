@@ -214,6 +214,27 @@ class TestTerminal(unittest.TestCase):
         self.assertTrue('8001/8001' in result)
         self.assertTrue('100%' in result)
 
+    @patch('mp4ansi.Terminal.assign_total', return_value=True)
+    def test__get_progress_text_Should_ReturnExpected_When_TotalAssigned(self, *patches):
+        config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': r'^processed (?P<value>\d+)$'}}
+        trmnl = Terminal(13, config=config)
+        index = 3
+        trmnl.terminal[index]['count'] = 0
+        text = 'total is 8001'
+        result = trmnl.get_progress_text(index, text)
+        self.assertTrue('Processing' in result)
+        self.assertTrue('0%' in result)
+
+    @patch('mp4ansi.Terminal.assign_total', return_value=False)
+    def test__get_progress_text_Should_ReturnExpected_When_TotalNotAssigned(self, *patches):
+        config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': r'^processed (?P<value>\d+)$'}}
+        trmnl = Terminal(13, config=config)
+        index = 3
+        trmnl.terminal[index]['count'] = 0
+        text = 'total is 8001'
+        result = trmnl.get_progress_text(index, text)
+        self.assertIsNone(result)
+
     @patch('mp4ansi.Terminal.write')
     @patch('mp4ansi.Terminal.assign_id')
     def test__write_line_Should_CallAssignId_When_IdRegexAndNotIdMatched(self, assign_id_patch, *patches):

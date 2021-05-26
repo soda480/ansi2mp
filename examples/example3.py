@@ -44,6 +44,7 @@ def do_something(*args):
     logger.debug(f'processor id {uuid}')
     total = randint(4000, 10000)
     logger.debug(f'processing total of {total}')
+    sleep(10)
     for index in range(total):
         logger.debug(f'processed {index}')
         # sleep(.001)

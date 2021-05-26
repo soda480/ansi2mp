@@ -106,11 +106,13 @@ class Terminal():
     def assign_total(self, index, text):
         """ assign total for index using total from config
         """
+        total_assigned = False
         if isinstance(self.config['progress_bar']['total'], str):
             regex_total = self.config['progress_bar']['total']
             match_total = re.match(regex_total, text)
             if match_total:
                 self.terminal[index]['total'] = int(match_total.group('value'))
+                total_assigned = True
         else:
             self.terminal[index]['total'] = self.config['progress_bar']['total']
 
@@ -119,6 +121,7 @@ class Terminal():
             # in case total less than progress bar width then lets set modulus to 1 to avoid divide by zero
             if self.terminal[index]['modulus'] == 0:
                 self.terminal[index]['modulus'] = 1
+        return total_assigned
 
     def get_identifier(self, index, text):
         """ return tuple identifier and boolean indicating if it was assigned
@@ -133,8 +136,9 @@ class Terminal():
         """ process progress bar
         """
         progress_text = None
+        total_assigned = False
         if not self.terminal[index]['total']:
-            self.assign_total(index, text)
+            total_assigned = self.assign_total(index, text)
 
         if self.terminal[index]['count'] == self.terminal[index]['total']:
             progress_text = self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
@@ -149,6 +153,12 @@ class Terminal():
                 percentage = str(round((self.terminal[index]['count'] / self.terminal[index]['total']) * 100)).rjust(3)
                 indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}"
                 progress_text = f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+            else:
+                if total_assigned:
+                    padding = ' ' * PROGRESS_BAR_WIDTH
+                    percentage = str(0).rjust(3)
+                    indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}"
+                    progress_text = f"Processing |{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
         return progress_text
 
     def write_line(self, index, text, add_duration=False, force=False):
