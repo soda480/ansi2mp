@@ -235,6 +235,20 @@ class TestTerminal(unittest.TestCase):
         result = trmnl.get_progress_text(index, text)
         self.assertIsNone(result)
 
+    @patch('mp4ansi.Terminal.sanitize')
+    def test__get_matched_text_Should_ReturnExpected_When_Match(self, sanitize_patch, *patches):
+        config = {'id_regex': r'^processor id (?P<value>.*)$', 'text_regex': '^some-text$'}
+        trmnl = Terminal(13, config=config)
+        result = trmnl.get_matched_text('some-text')
+        sanitize_patch.assert_called_once_with('some-text')
+        self.assertEqual(result, sanitize_patch.return_value)
+
+    def test__get_matched_text_Should_ReturnExpected_When_NoMatch(self, *patches):
+        config = {'id_regex': r'^processor id (?P<value>.*)$', 'text_regex': '^some-text$'}
+        trmnl = Terminal(13, config=config)
+        result = trmnl.get_matched_text('some-other-text')
+        self.assertIsNone(result)
+
     @patch('mp4ansi.Terminal.write')
     @patch('mp4ansi.Terminal.assign_id')
     def test__write_line_Should_CallAssignId_When_IdRegexAndNotIdMatched(self, assign_id_patch, *patches):
@@ -288,6 +302,18 @@ class TestTerminal(unittest.TestCase):
         write_patch.assert_called()
         self.assertEqual(write_patch.mock_calls[0][1][2], f'{sanitize_patch.return_value} - 0:01:23')
         sanitize_patch.assert_called_once_with(text)
+
+    @patch('mp4ansi.Terminal.sanitize')
+    @patch('mp4ansi.Terminal.get_matched_text')
+    @patch('mp4ansi.Terminal.write')
+    def test__write_line_Should_ReturnAndCallExpected_When_TextRegex(self, write_patch, get_matched_text, *patches):
+        config = {'id_regex': r'^processor id (?P<value>.*)$', 'text_regex': '^some-regex$'}
+        trmnl = Terminal(13, config=config)
+        index = 1
+        text = 'processor id 121372'
+        trmnl.write_line(index, text)
+        get_matched_text.assert_called_once_with(text)
+        write_patch.assert_called()
 
     @patch('mp4ansi.terminal.sys.stderr')
     @patch('mp4ansi.Terminal.get_move_char')

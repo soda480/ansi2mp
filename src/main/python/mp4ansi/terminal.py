@@ -161,6 +161,24 @@ class Terminal():
                     progress_text = f"Processing |{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
         return progress_text
 
+    def get_matched_text(self, text):
+        """ return matched text
+        """
+        text_to_print = None
+        text_regex = self.config['text_regex']
+        if re.match(text_regex, text):
+            text_to_print = self.sanitize(text)
+        return text_to_print
+
+    def add_duration(self, index, text, add_duration):
+        """ append duration to text if add duration and text is not None
+        """
+        text_to_print = text
+        if add_duration and text_to_print is not None:
+            duration = self.durations.get(str(index), '')
+            text_to_print += f" - {duration}"
+        return text_to_print
+
     def write_line(self, index, text, add_duration=False, force=False):
         """ write line at index
         """
@@ -170,12 +188,12 @@ class Terminal():
             if not text_to_print and identifer_assigned:
                 # ensure id is written to terminal when it is assigned
                 text_to_print = ''
+        elif self.config.get('text_regex'):
+            text_to_print = self.get_matched_text(text)
         else:
             text_to_print = self.sanitize(text)
 
-        if add_duration and text_to_print is not None:
-            duration = self.durations.get(str(index), '')
-            text_to_print += f" - {duration}"
+        text_to_print = self.add_duration(index, text_to_print, add_duration)
 
         id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
         self.write(index, id_to_print, text_to_print, force=force)
