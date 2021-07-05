@@ -83,6 +83,12 @@ class TestMP4ansi(unittest.TestCase):
         client.terminal.write_line.assert_called_once_with(4, 'This is the message')
 
     @patch('mp4ansi.mp4ansi.Terminal')
+    def test__process_non_control_message_Should_CallExpected_When_Reset(self, *patches):
+        client = self.get_client()
+        client.process_non_control_message('4', 'RESET')
+        client.terminal.reset.assert_called_once_with(4)
+
+    @patch('mp4ansi.mp4ansi.Terminal')
     @patch('mp4ansi.mp4ansi.logger')
     def test__process_non_control_message_Should_CallExpected_When_NoOffSet(self, logger_patch, *patches):
         client = self.get_client()

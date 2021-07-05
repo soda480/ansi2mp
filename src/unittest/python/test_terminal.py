@@ -475,3 +475,18 @@ class TestTerminal(unittest.TestCase):
         trmnl.terminal = [{'id': '--id--'}]
         identifier, assigned = trmnl.get_identifier(0, 'text')
         self.assertFalse(assigned)
+
+    def test__reset_Should_CallExpected_When_ProgressBar(self, *patches):
+        config = {'progress_bar': {'total': 10, 'count_regex': '-count-regex-'}}
+        trmnl = Terminal(4, config=config)
+        trmnl.terminal[2]['count'] = 10
+        trmnl.terminal[2]['text'] = 'some text'
+        trmnl.reset(2)
+        self.assertEqual(trmnl.terminal[2]['count'], 0)
+        self.assertEqual(trmnl.terminal[2]['text'], '')
+
+    def test__reset_Should_CallExpected_When_NoProgressBar(self, *patches):
+        trmnl = Terminal(4)
+        trmnl.terminal[2]['text'] = 'some text'
+        trmnl.reset(2)
+        self.assertEqual(trmnl.terminal[2]['text'], '')
