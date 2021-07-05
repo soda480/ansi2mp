@@ -212,6 +212,16 @@ class Terminal():
             sys.stderr.flush()
             self.current += 1
 
+    def reset(self, index):
+        """ reset termnal index
+        """
+        logger.debug(f'resetting terminal at index {index}')
+        self.terminal[index]['text'] = ''
+        if self.config.get('progress_bar'):
+            self.terminal[index]['count'] = 0
+            self.terminal[index]['modulus_count'] = 0
+            self.terminal[index]['total'] = None
+
     def get_move_char(self, index):
         """ return char to move to index
         """

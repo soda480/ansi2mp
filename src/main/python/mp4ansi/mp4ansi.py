@@ -48,6 +48,10 @@ class MP4ansi(MPmq):
         """
         if offset is None:
             logger.warn(f'unable to write {message} line to terminal because offset is None')
+            return
+        if message == 'RESET':
+            # implement ability to reset index
+            self.terminal.reset(int(offset))
         else:
             self.terminal.write_line(int(offset), message)
 
