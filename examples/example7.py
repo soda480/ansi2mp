@@ -6,21 +6,25 @@ logger = logging.getLogger(__name__)
 def do_work(*args):
     total_names = 0
     while True:
-        total_names += 1
+        if total_names >= 5:
+            break
+
+        logger.debug('RESET')
+
         last_name = names.get_last_name()
-        logger.debug(f'processor is {last_name}|{str(total_names).zfill(2)}')
+        logger.debug(f'processor is [{str(total_names).zfill(2)}] {last_name}')
+        total_names += 1
+
         total = random.randint(50, 125)
         logger.debug(f'processing total of {total}')
         for _ in range(total):
             logger.debug(f'processed {names.get_full_name()}')
-        logger.debug('RESET')
+
     return total
 
 process_data = [{} for item in range(8)]
 config = {
     'id_regex': r'^processor is (?P<value>.*)$',
-    'id_justify': True,
-    'id_width': 10,
     'progress_bar': {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',

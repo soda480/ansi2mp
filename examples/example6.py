@@ -10,15 +10,14 @@ def do_work(*args):
     logger.debug(f'processing total of {total}')
     for _ in range(total):
         logger.debug(f'processed {names.get_full_name()}')
-        logger.debug('')
+        # logger.debug('')
+    logger.debug('processing completed')
     return total
 
 process_data = [{} for item in range(8)]
 config = {
     'id_regex': r'^processor is (?P<value>.*)$',
-    'id_justify': True,
-    'id_width': 10,
-    'text_regex': r'^processed .*$'
+    'text_regex': r'^process.*$'
 }
 print('Procesing names...')
 MP4ansi(function=do_work, process_data=process_data, config=config).execute()

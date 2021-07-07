@@ -65,7 +65,8 @@ def main(count):
         'id_regex': r'^processor id (?P<value>.*)$',
         'progress_bar': {
             'total': r'^processing total of (?P<value>\d+)$',
-            'count_regex': r'^processed (?P<value>\d+)$'
+            'count_regex': r'^processed (?P<value>\d+)$',
+            'max_digits': 4
         }
     }
 
