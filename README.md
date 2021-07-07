@@ -49,7 +49,7 @@ Executing the code above ([example1](https://github.com/soda480/mp4ansi/tree/mas
 
 **Note** the function being executed `do_work` has no context about multiprocessing or the terminal; it simply perform a function on a given dataset. MP4ansi takes care of setting up the multiprocessing, setting up the terminal, and maintaining the thread-safe queues that are required for inter-process communication.
 
-Let's update the example to add a custom identifer for each process and to show execution as a progress bar. To do this we need to provide additonal configuration via the optional `config` parameter. Configuration is supplied as a dictionary; `id_regex` instructs how to query for the identifer from the log messages, `id_justify` will right justify the identifer to make things look nice. For the progress bar, we need to specify `total` and `count_regex` to instruct how to query for the total and for when to count that an item has been processed. The value for these settings are specified as regular expressions and will match the function log messages, thus we need to ensure our function has log statements for these. If each instance of your function executes on a static data range then you can specify total as an `int`, but in this example the data range is dynamic, i.e. each process will execute on varying data ranges.
+Let's update the example to add a custom identifer for each process and to show execution as a progress bar. To do this we need to provide additonal configuration via the optional `config` parameter. Configuration is supplied as a dictionary; `id_regex` instructs how to query for the identifer from the log messages. For the progress bar, we need to specify `total` and `count_regex` to instruct how to query for the total and for when to count that an item has been processed. The value for these settings are specified as regular expressions and will match the function log messages, thus we need to ensure our function has log statements for these. If each instance of your function executes on a static data range then you can specify total as an `int`, but in this example the data range is dynamic, i.e. each process will execute on varying data ranges.
 
 ```python
 from mp4ansi import MP4ansi
@@ -67,8 +67,6 @@ def do_work(*args):
 process_data = [{} for item in range(8)]
 config = {
     'id_regex': r'^processor is (?P<value>.*)$',
-    'id_justify': True,
-    'id_width': 10,
     'progress_bar': {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',

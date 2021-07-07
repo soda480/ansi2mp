@@ -91,8 +91,9 @@ class TestTerminal(unittest.TestCase):
         result = trmnl.create(1)
         expected_result = [
             {
-                'id': '0',
+                'id': '',
                 'text': '',
+                'index': '0',
                 'count': 0,
                 'modulus_count': 0,
                 'total': None
@@ -106,25 +107,18 @@ class TestTerminal(unittest.TestCase):
         trmnl.assign_id(0, 'id is abcd123')
         self.assertEqual(trmnl.terminal[0]['id'], 'abcd123')
 
+    def test__assign_id_Should_SetExpected_When_MatchedGreaterThanIdWidth(self, *patches):
+        config = {'id_regex': r'^id is (?P<value>.*)$'}
+        trmnl = Terminal(1, config=config)
+        trmnl.assign_id(0, 'id is The longest word in any given language depends on the word formation rules of each specific language.')
+        self.assertEqual(trmnl.terminal[0]['id'], 'The longest word in any given language depends on the word formation rules of each specific langu...')
+
     def test__assign_id_Should_NotSet_When_NotMatched(self, *patches):
         config = {'id_regex': r'^id is (?P<value>.*)$'}
         trmnl = Terminal(1, config=config)
         trmnl.terminal[0]['id_matched'] = False
         trmnl.assign_id(0, 'this is a message')
         self.assertFalse(trmnl.terminal[0]['id_matched'])
-
-    def test__assign_id_Should_Justfiy_When_MatchedAndJustify(self, *patches):
-        config = {'id_regex': r'^id is (?P<value>.*)$', 'id_justify': True}
-        trmnl = Terminal(1, config=config)
-        trmnl.assign_id(0, 'id is abcd123')
-        self.assertEqual(trmnl.terminal[0]['id'], 'abcd123'.rjust(ID_WIDTH))
-
-    def test__assign_id_Should_Justfiy_When_MatchedAndJustifyAndExceedsIdWidth(self, *patches):
-        config = {'id_regex': r'^id is (?P<value>.*)$', 'id_justify': True}
-        trmnl = Terminal(1, config=config)
-        text = 'this-is-a-very-long-name-here-greather-than-id-width'
-        trmnl.assign_id(0, f'id is {text}')
-        self.assertEqual(trmnl.terminal[0]['id'], f'...{text[-(ID_WIDTH - 3):]}')
 
     def test__assign_total_Should_SetExpected_When_TotalIsStr(self, *patches):
         config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': '-regex-'}}
@@ -337,7 +331,7 @@ class TestTerminal(unittest.TestCase):
         id_ = '123456'
         text = 'hello world'
         trmnl.write(index, id_, text)
-        self.assertTrue(call(f"{id_}: {text}", file=stderr_patch) in print_patch.mock_calls)
+        self.assertEqual(len(print_patch.mock_calls), 2)
 
     @patch('mp4ansi.terminal.sys.stderr')
     @patch('builtins.print')
@@ -407,7 +401,7 @@ class TestTerminal(unittest.TestCase):
         trmnl = Terminal(3, create=False)
         text = 'hello world'
         result = trmnl.sanitize(text)
-        self.assertEqual(result, text)
+        self.assertEqual(result, text.ljust(MAX_CHARS))
 
     def test__sanitize_Should_ReturnExpected_When_GreaterThanMaxChars(self, *patches):
         trmnl = Terminal(3, create=False)

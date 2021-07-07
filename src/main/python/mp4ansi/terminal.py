@@ -18,7 +18,8 @@ SHOW_CURSOR = '\x1b[?25h'
 CLEAR_EOL = '\033[K'
 PROGRESS_TICKER = chr(9632)  # ■
 PROGRESS_BAR_WIDTH = 50
-ID_WIDTH = 30
+ID_WIDTH = 100
+MAX_DIGITS = 3
 
 
 class Terminal():
@@ -68,8 +69,9 @@ class Terminal():
         zfill = len(str(number_of_lines))
         for index in range(number_of_lines):
             item = {
-                'id': str(index).zfill(zfill),
-                'text': ''
+                'id': '',
+                'text': '',
+                'index': str(index).zfill(zfill),
             }
             # progress bar requires additional metadata
             if self.config.get('progress_bar'):
@@ -94,12 +96,8 @@ class Terminal():
         match_id = re.match(regex_id, text)
         if match_id:
             value = match_id.group('value')
-            if self.config.get('id_justify', False):
-                id_width = self.get_id_width()
-                if len(value) > id_width:
-                    value = f'...{value[-(id_width - 3):]}'
-                else:
-                    value = value.rjust(id_width)
+            if len(value) > ID_WIDTH:
+                value = f'{value[0:ID_WIDTH - 3]}...'
             self.terminal[index]['id'] = value
             return value
 
@@ -145,19 +143,20 @@ class Terminal():
         else:
             regex_count = self.config['progress_bar']['count_regex']
             match_count = re.match(regex_count, text)
+            indicator_padding = self.config['progress_bar'].get('max_digits', MAX_DIGITS) * 2 + 1  # 2 sets of digits and 1 for the divider
             if match_count:
                 self.terminal[index]['count'] += 1
                 self.terminal[index]['modulus_count'] = round(round(self.terminal[index]['count'] / self.terminal[index]['total'], 2) * PROGRESS_BAR_WIDTH)
                 progress = PROGRESS_TICKER * self.terminal[index]['modulus_count']
                 padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[index]['modulus_count'])
                 percentage = str(round((self.terminal[index]['count'] / self.terminal[index]['total']) * 100)).rjust(3)
-                indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}"
+                indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}".ljust(indicator_padding)
                 progress_text = f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
             else:
                 if total_assigned:
                     padding = ' ' * PROGRESS_BAR_WIDTH
                     percentage = str(0).rjust(3)
-                    indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}"
+                    indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}".ljust(indicator_padding)
                     progress_text = f"Processing |{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
         return progress_text
 
@@ -198,17 +197,18 @@ class Terminal():
         id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
         self.write(index, id_to_print, text_to_print, force=force)
 
-    def write(self, index, identifier, text, force=False):
+    def write(self, index, id_to_print, text_to_print, force=False):
         """ move to index and write identifier and text
         """
         if sys.stderr.isatty() or force:
             move_char = self.get_move_char(index)
-            if text is None:
+            if text_to_print is None:
                 print(move_char, file=sys.stderr)
             else:
-                self.terminal[index]['text'] = text
+                self.terminal[index]['text'] = text_to_print
                 print(f'{move_char}{CLEAR_EOL}', end='', file=sys.stderr)
-                print(f"{identifier}: {text}", file=sys.stderr)
+                index_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{self.terminal[index]['index']}{Style.RESET_ALL}"
+                print(f"{index_to_print}: {text_to_print} {id_to_print}", file=sys.stderr)
             sys.stderr.flush()
             self.current += 1
 
@@ -260,6 +260,8 @@ class Terminal():
             text = text.splitlines()[0]
             if len(text) > MAX_CHARS:
                 text = f'{text[0:MAX_CHARS - 3]}...'
+            else:
+                text = text.ljust(MAX_CHARS)
         return text
 
     def show_cursor(self):

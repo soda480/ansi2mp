@@ -15,8 +15,6 @@ def do_work(*args):
 process_data = [{} for item in range(8)]
 config = {
     'id_regex': r'^processor is (?P<value>.*)$',
-    'id_justify': True,
-    'id_width': 10,
     'progress_bar': {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',

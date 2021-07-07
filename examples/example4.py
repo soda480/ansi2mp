@@ -67,7 +67,7 @@ def main():
             'total': 10000,
             'count_regex': r'^checking (?P<value>\d+)/\d+$',
             'modulus': 250,
-            'ticker': '|'
+            'max_digits': 5
         }
     }
 
