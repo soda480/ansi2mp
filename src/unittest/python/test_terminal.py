@@ -85,14 +85,15 @@ class TestTerminal(unittest.TestCase):
     @patch('mp4ansi.Terminal.validate_lines')
     @patch('mp4ansi.Terminal.validate_config')
     @patch('mp4ansi.terminal.colorama_init')
-    def test__create_Should_ReturnExpected_When_Called(self, *patches):
+    @patch('mp4ansi.Terminal.determine_progress_text')
+    def test__create_Should_ReturnExpected_When_Called(self, determine_progress_text_patch, *patches):
         config = {'progress_bar': {'total': 10, 'count_regex': '-regex-'}}
         trmnl = Terminal(1, create=False, config=config)
         result = trmnl.create(1)
         expected_result = [
             {
                 'id': '',
-                'text': '',
+                'text': determine_progress_text_patch.return_value,
                 'index': '0',
                 'count': 0,
                 'modulus_count': 0,
@@ -225,24 +226,29 @@ class TestTerminal(unittest.TestCase):
         trmnl = Terminal(13, config=config)
         index = 3
         trmnl.terminal[index]['count'] = 0
+        trmnl.terminal[index]['text'] = '--init-text--'
         text = 'total is 8001'
         result = trmnl.get_progress_text(index, text)
-        self.assertIsNone(result)
+        self.assertEqual(result, trmnl.terminal[index]['text'])
 
     @patch('mp4ansi.Terminal.assign_total', return_value=False)
     def test__get_progress_text_Should_ReturnExpected_When_CountButNoTotal(self, *patches):
         config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
-        result = trmnl.get_progress_text(3, 'processed 1234')
-        self.assertIsNone(result)
+        index = 3
+        trmnl.terminal[index]['text'] = '--init-text--'
+        result = trmnl.get_progress_text(index, 'processed 1234')
+        self.assertEqual(result, trmnl.terminal[index]['text'])
 
     @patch('mp4ansi.Terminal.assign_total', return_value=False)
     def test__get_progress_text_Should_ReturnExpected_When_TotalAndNoMatchCount(self, *patches):
         config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': r'^processed (?P<value>\d+)$'}}
         trmnl = Terminal(13, config=config)
-        trmnl.terminal[3]['total'] = 100
+        index = 3
+        trmnl.terminal[index]['text'] = '--init-text--'
+        trmnl.terminal[index]['total'] = 100
         result = trmnl.get_progress_text(3, 'just a random message')
-        self.assertIsNone(result)
+        self.assertEqual(result, trmnl.terminal[index]['text'])
 
     @patch('mp4ansi.Terminal.sanitize')
     def test__get_matched_text_Should_ReturnExpected_When_Match(self, sanitize_patch, *patches):

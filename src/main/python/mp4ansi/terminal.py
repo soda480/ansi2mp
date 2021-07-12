@@ -78,6 +78,7 @@ class Terminal():
                 item['count'] = 0
                 item['modulus_count'] = 0
                 item['total'] = None
+                item['text'] = self.determine_progress_text(0, 0, None)
             terminal.append(item)
         return terminal
 
@@ -133,16 +134,12 @@ class Terminal():
     def get_progress_text(self, index, text):
         """ process progress bar
         """
-        progress_text = None
+        progress_text = self.terminal[index]['text']
         total_assigned = False
-        indicator_padding = self.config['progress_bar'].get('max_digits', MAX_DIGITS) * 2 + 1  # 2 sets of digits and 1 for the divider
         if not self.terminal[index]['total']:
             total_assigned = self.assign_total(index, text)
             if total_assigned:
-                padding = ' ' * PROGRESS_BAR_WIDTH
-                percentage = str(0).rjust(3)
-                indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}".ljust(indicator_padding)
-                progress_text = f"Processing |{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+                progress_text = self.determine_progress_text(self.terminal[index]['modulus_count'], self.terminal[index]['count'], self.terminal[index]['total'])
         else:
             if self.terminal[index]['count'] == self.terminal[index]['total']:
                 progress_text = self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
@@ -152,11 +149,7 @@ class Terminal():
                 if match_count:
                     self.terminal[index]['count'] += 1
                     self.terminal[index]['modulus_count'] = round(round(self.terminal[index]['count'] / self.terminal[index]['total'], 2) * PROGRESS_BAR_WIDTH)
-                    progress = PROGRESS_TICKER * self.terminal[index]['modulus_count']
-                    padding = ' ' * (PROGRESS_BAR_WIDTH - self.terminal[index]['modulus_count'])
-                    percentage = str(round((self.terminal[index]['count'] / self.terminal[index]['total']) * 100)).rjust(3)
-                    indicator = f"{self.terminal[index]['count']}/{self.terminal[index]['total']}".ljust(indicator_padding)
-                    progress_text = f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+                    progress_text = self.determine_progress_text(self.terminal[index]['modulus_count'], self.terminal[index]['count'], self.terminal[index]['total'])
         return progress_text
 
     def get_matched_text(self, text):
@@ -274,3 +267,21 @@ class Terminal():
         """
         if sys.stderr.isatty():
             print(HIDE_CURSOR, end='', file=sys.stderr)
+
+    def determine_progress_text(self, modulus_count, count, total):
+        """ determine progress bar text
+        """
+        max_digits = self.config['progress_bar'].get('max_digits', MAX_DIGITS)
+        if total:
+            percentage = str(round((count / total) * 100))
+            indicator = f'{count}/{total}'
+        else:
+            percentage = '0'
+            indicator = '#/#'
+        percentage = percentage.rjust(3)
+        indicator_padding = max_digits * 2 + 1  # 2 sets of digits and 1 for the divider
+        indicator = indicator.ljust(indicator_padding)
+        progress = PROGRESS_TICKER * modulus_count
+        padding = ' ' * (PROGRESS_BAR_WIDTH - modulus_count)
+        progress_text = f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+        return progress_text
