@@ -229,6 +229,21 @@ class TestTerminal(unittest.TestCase):
         result = trmnl.get_progress_text(index, text)
         self.assertIsNone(result)
 
+    @patch('mp4ansi.Terminal.assign_total', return_value=False)
+    def test__get_progress_text_Should_ReturnExpected_When_CountButNoTotal(self, *patches):
+        config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': r'^processed (?P<value>\d+)$'}}
+        trmnl = Terminal(13, config=config)
+        result = trmnl.get_progress_text(3, 'processed 1234')
+        self.assertIsNone(result)
+
+    @patch('mp4ansi.Terminal.assign_total', return_value=False)
+    def test__get_progress_text_Should_ReturnExpected_When_TotalAndNoMatchCount(self, *patches):
+        config = {'progress_bar': {'total': r'^total is (?P<value>\d+)$', 'count_regex': r'^processed (?P<value>\d+)$'}}
+        trmnl = Terminal(13, config=config)
+        trmnl.terminal[3]['total'] = 100
+        result = trmnl.get_progress_text(3, 'just a random message')
+        self.assertIsNone(result)
+
     @patch('mp4ansi.Terminal.sanitize')
     def test__get_matched_text_Should_ReturnExpected_When_Match(self, sanitize_patch, *patches):
         config = {'id_regex': r'^processor id (?P<value>.*)$', 'text_regex': '^some-text$'}
