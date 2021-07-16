@@ -19,7 +19,7 @@ config = {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',
         'progress_message': 'Finished processing names',
-        'max_digits': 3
+        'max_total': 125
     }
 }
 print('Procesing names...')

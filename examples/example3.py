@@ -8,6 +8,8 @@ from mp4ansi import MP4ansi
 
 logger = logging.getLogger(__name__)
 
+TOTAL = 10000
+
 
 def configure_logging():
     """ configure logging
@@ -42,9 +44,9 @@ def get_process_data(count):
 def do_something(*args):
     uuid = args[0]['uuid']
     logger.debug(f'processor id {uuid}')
-    total = randint(4000, 10000)
+    total = randint(4000, TOTAL)
     logger.debug(f'processing total of {total}')
-    sleep(10)
+    sleep(5)
     for index in range(total):
         logger.debug(f'processed {index}')
         # sleep(.001)
@@ -66,7 +68,7 @@ def main(count):
         'progress_bar': {
             'total': r'^processing total of (?P<value>\d+)$',
             'count_regex': r'^processed (?P<value>\d+)$',
-            'max_digits': 4
+            'max_total': TOTAL
         }
     }
 

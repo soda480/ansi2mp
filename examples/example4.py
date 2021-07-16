@@ -66,8 +66,7 @@ def main():
             # 'total': r'^checking total of (?P<value>\d+) numbers$',
             'total': 10000,
             'count_regex': r'^checking (?P<value>\d+)/\d+$',
-            'modulus': 250,
-            'max_digits': 5
+            'max_total': 90000
         }
     }
 

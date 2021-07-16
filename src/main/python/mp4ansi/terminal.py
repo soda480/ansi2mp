@@ -40,7 +40,7 @@ class Terminal():
             raise ValueError(f'lines must be between 1-{MAX_LINES}')
 
     def validate_config(self, config):
-        """ validate progress bar
+        """ validate progress bar config
         """
         if 'progress_bar' in config:
             keys = config['progress_bar'].keys()
@@ -52,41 +52,35 @@ class Terminal():
             if not isinstance(config['progress_bar']['total'], (str, int)):
                 raise ValueError('progress_bar.total must be an integer or string')
 
-    def create(self, number_of_lines):
-        """ return list of dictionaries representing terminal for config
+    def create_progress_bars(self, lines):
+        """ create and return list of progress bars
         """
-        logger.debug('creating terminal')
-        terminal = []
-        # zfill = len(str(number_of_lines))
-
-        progress_bar_config = self.config.get('progress_bar', {})
-
-        regex = {
-            'total': None,
-            'count': progress_bar_config.get('count_regex'),
-            'alias': self.config.get('id_regex')
-        }
+        regex = {}
+        regex['count'] = self.config['progress_bar']['count_regex']
+        regex['alias'] = self.config.get('id_regex')
         total = None
-        if isinstance(progress_bar_config.get('total'), str):
+        if isinstance(self.config['progress_bar']['total'], str):
             regex['total'] = self.config['progress_bar']['total']
         else:
-            total = progress_bar_config.get('total')
-
-        for index in range(number_of_lines):
-            progress_bar = ProgressBar(
-                index,
-                total=total,
-                fill=progress_bar_config.get('max_digits'),
-                regex=regex,
-                message=progress_bar_config.get('progress_message'))
+            total = self.config['progress_bar']['total']
+        fill = {}
+        fill['max_total'] = self.config['progress_bar'].get('max_total')
+        fill['max_index'] = lines
+        fill['max_completed'] = self.config['progress_bar'].get('max_completed')
+        terminal = []
+        message = self.config['progress_bar'].get('progress_message')
+        for index in range(lines):
+            progress_bar = ProgressBar(index, total=total, fill=fill, regex=regex, message=message)
             terminal.append(progress_bar)
         return terminal
 
-    def write_line(self, index, text):
-        """ write line at index
+    def create(self, number_of_lines):
+        """ return list of dictionaries representing terminal
         """
-        self.terminal[index].match(text)
-        self.write(index)
+        logger.debug('creating terminal')
+        if 'progress_bar' in self.config:
+            return self.create_progress_bars(number_of_lines)
+        # return self.create_terminal_lines(number_of_lines)
 
     def write(self, index, force=False):
         """ move to index and print terminal line at index
@@ -97,6 +91,21 @@ class Terminal():
             print(self.terminal[index], file=sys.stderr)
             sys.stderr.flush()
             self.current += 1
+
+    def write_line(self, index, text):
+        """ write terminal line at index
+        """
+        self.terminal[index].match(text)
+        self.write(index)
+
+    def write_lines(self, add_duration=False, force=False):
+        """ write lines to terminal
+        """
+        logger.debug('writing terminal')
+        for index, _ in enumerate(self.terminal):
+            if add_duration:
+                self.terminal[index].duration = self.durations.get(str(index))
+            self.write(index, force=force)
 
     def reset(self, index):
         """ reset termnal index
@@ -127,15 +136,6 @@ class Terminal():
         diff = self.current - index
         self.current -= diff
         return Cursor.UP(diff)
-
-    def write_lines(self, add_duration=False, force=False):
-        """ write lines to terminal
-        """
-        logger.debug('writing terminal')
-        for index, _ in enumerate(self.terminal):
-            if add_duration:
-                self.terminal[index].duration = self.durations.get(str(index))
-            self.write(index, force=force)
 
     def show_cursor(self):
         """ show cursor

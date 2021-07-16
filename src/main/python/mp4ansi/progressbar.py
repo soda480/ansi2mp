@@ -22,18 +22,19 @@ class ProgressBar(object):
     def __init__(self, index, total=None, fill=None, regex=None, message=None):
         """ class constructor
         """
+        logger.debug('executing ProgressBar constructor')
         colorama_init()
 
-        if not fill:
-            fill = FILL
-        self.fill = fill
+        self.fill = self._get_fill(fill)
 
         if not regex:
             regex = {}
         self.regex = regex
 
         self.message = message
-        self.complete = False
+        self._complete = False
+        self._completed = 0
+        self.show_completed = False
         self.duration = None
 
         self.index = index
@@ -43,19 +44,20 @@ class ProgressBar(object):
         self._reset = 0
         # avoid __setattr__ for setting count value
         self.__dict__['count'] = 0
-        logger.debug('initializtion complete')
 
     def __str__(self):
         """ return string interpretation of class instance
         """
+        index_fill = self.fill['index']
         bright_yellow = Style.BRIGHT + Fore.YELLOW + Back.BLACK
-        _index = f"{bright_yellow}{str(self.index).zfill(2)}{Style.RESET_ALL}"
-        _alias = f"{bright_yellow}{self.alias}{Style.RESET_ALL}"
-        _progress = self._get_progress()
-        _reset = ''
-        if self._reset:
-            _reset = f'{bright_yellow}[{str(self._reset).zfill(2)}] '
-        return f"{_index}: {_progress} {_reset}{_alias}"
+        index = f"{bright_yellow}{str(self.index).zfill(index_fill)}{Style.RESET_ALL}"
+        alias = f"{bright_yellow}{self.alias}{Style.RESET_ALL}"
+        progress = self._get_progress()
+        completed = ''
+        if self._completed and self.show_completed:
+            completed_fill = self.fill['completed']
+            completed = f'{bright_yellow}[{str(self._completed).zfill(completed_fill)}] '
+        return f"{index}: {progress} {completed}{alias}"
 
     def __setattr__(self, name, value):
         """ set class instance attributes
@@ -65,10 +67,6 @@ class ProgressBar(object):
         super(ProgressBar, self).__setattr__(name, value)
         if name == 'count':
             self._modulus_count = round(round(self.count / self.total, 2) * PROGRESS_WIDTH)
-        # restrict total - can only be set once if previous value is null
-        # implement reset
-        # restrict index
-        # restrict _modulus_count
 
     def reset(self):
         """ reset progress bar
@@ -76,8 +74,10 @@ class ProgressBar(object):
         logger.debug('resetting progress bar')
         self.alias = ''
         self.total = None
-        self.complete = False
+        self._complete = False
         self._modulus_count = 0
+        # reset sets show_completed - typically only want to show completed when progress bars are reused and reset
+        self.show_completed = True
         # avoid __setattr__ for setting count value
         self.__dict__['count'] = 0
         self._reset += 1
@@ -140,21 +140,36 @@ class ProgressBar(object):
     def _get_progress(self):
         """ return progress text
         """
-        if self.complete:
+        if self._complete:
             progress = self._get_complete()
         else:
+            total_fill = self.fill['total']
             if self.total:
                 _percentage = str(round((self.count / self.total) * 100))
-                indicator = f'{str(self.count).zfill(self.fill)}/{str(self.total).zfill(self.fill)}'
+                fraction = f'{str(self.count).zfill(total_fill)}/{str(self.total).zfill(total_fill)}'
                 if self.count == self.total:
-                    self.complete = True
+                    self._complete = True
+                    self._completed += 1
             else:
                 _percentage = '0'
-                # 2 sets of digits and 1 for the divider
-                indicator = '#' * self.fill + '/' + '#' * self.fill
+                fraction = '#' * total_fill + '/' + '#' * total_fill
 
             bar = TICKER * self._modulus_count
             padding = ' ' * (PROGRESS_WIDTH - self._modulus_count)
             percentage = _percentage.rjust(3)
-            progress = f"Processing |{bar}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
+            progress = f"Processing |{bar}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {fraction}"
         return progress
+
+    def _get_fill(self, data):
+        """ return fill dictionary derived from data values
+        """
+        fill = {}
+        if not data:
+            fill['total'] = FILL
+            fill['index'] = FILL
+            fill['completed'] = FILL
+        else:
+            fill['total'] = len(str(data.get('max_total', FILL * '-')))
+            fill['index'] = len(str(data.get('max_index', FILL * '-')))
+            fill['completed'] = len(str(data.get('max_completed', FILL * '-')))
+        return fill
