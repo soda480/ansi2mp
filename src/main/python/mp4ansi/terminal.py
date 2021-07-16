@@ -1,25 +1,16 @@
 #   -*- coding: utf-8 -*-
-import re
 import sys
-import math
 import logging
 from colorama import init as colorama_init
-from colorama import Style
-from colorama import Fore
-from colorama import Back
 from colorama import Cursor
+from mp4ansi.progressbar import ProgressBar
 
 logger = logging.getLogger(__name__)
 
 MAX_LINES = 75
-MAX_CHARS = 120
 HIDE_CURSOR = '\x1b[?25l'
 SHOW_CURSOR = '\x1b[?25h'
 CLEAR_EOL = '\033[K'
-PROGRESS_TICKER = chr(9632)  # ■
-PROGRESS_BAR_WIDTH = 50
-ID_WIDTH = 100
-MAX_DIGITS = 3
 
 
 class Terminal():
@@ -66,141 +57,44 @@ class Terminal():
         """
         logger.debug('creating terminal')
         terminal = []
-        zfill = len(str(number_of_lines))
+        # zfill = len(str(number_of_lines))
+
+        progress_bar_config = self.config.get('progress_bar', {})
+
+        regex = {
+            'total': None,
+            'count': progress_bar_config.get('count_regex'),
+            'alias': self.config.get('id_regex')
+        }
+        total = None
+        if isinstance(progress_bar_config.get('total'), str):
+            regex['total'] = self.config['progress_bar']['total']
+        else:
+            total = progress_bar_config.get('total')
+
         for index in range(number_of_lines):
-            item = {
-                'id': '',
-                'text': '',
-                'index': str(index).zfill(zfill),
-            }
-            # progress bar requires additional metadata
-            if self.config.get('progress_bar'):
-                item['count'] = 0
-                item['modulus_count'] = 0
-                item['total'] = None
-                item['text'] = self.determine_progress_text(0, 0, None)
-            terminal.append(item)
+            progress_bar = ProgressBar(
+                index,
+                total=total,
+                fill=progress_bar_config.get('max_digits'),
+                regex=regex,
+                message=progress_bar_config.get('progress_message'))
+            terminal.append(progress_bar)
         return terminal
 
-    def get_id_width(self):
-        """ return id width
-        """
-        id_width = self.config.get('id_width', ID_WIDTH)
-        if id_width > ID_WIDTH:
-            id_width = ID_WIDTH
-        return id_width
-
-    def assign_id(self, index, text):
-        """ assign id for index using id_regex from config
-        """
-        regex_id = self.config['id_regex']
-        match_id = re.match(regex_id, text)
-        if match_id:
-            value = match_id.group('value')
-            if len(value) > ID_WIDTH:
-                value = f'{value[0:ID_WIDTH - 3]}...'
-            self.terminal[index]['id'] = value
-            return value
-
-    def assign_total(self, index, text):
-        """ assign total for index using total from config
-        """
-        total_assigned = False
-        if isinstance(self.config['progress_bar']['total'], str):
-            regex_total = self.config['progress_bar']['total']
-            match_total = re.match(regex_total, text)
-            if match_total:
-                self.terminal[index]['total'] = int(match_total.group('value'))
-                total_assigned = True
-        else:
-            self.terminal[index]['total'] = self.config['progress_bar']['total']
-
-        if self.terminal[index]['total']:
-            self.terminal[index]['modulus'] = round(self.terminal[index]['total'] / PROGRESS_BAR_WIDTH)
-            # in case total less than progress bar width then lets set modulus to 1 to avoid divide by zero
-            if self.terminal[index]['modulus'] == 0:
-                self.terminal[index]['modulus'] = 1
-        return total_assigned
-
-    def get_identifier(self, index, text):
-        """ return tuple identifier and boolean indicating if it was assigned
-        """
-        assigned = False
-        if self.config.get('id_regex'):
-            if self.assign_id(index, text) is not None:
-                assigned = True
-        return self.terminal[index]['id'], assigned
-
-    def get_progress_text(self, index, text):
-        """ process progress bar
-        """
-        progress_text = self.terminal[index]['text']
-        total_assigned = False
-        if not self.terminal[index]['total']:
-            total_assigned = self.assign_total(index, text)
-            if total_assigned:
-                progress_text = self.determine_progress_text(self.terminal[index]['modulus_count'], self.terminal[index]['count'], self.terminal[index]['total'])
-        else:
-            if self.terminal[index]['count'] == self.terminal[index]['total']:
-                progress_text = self.config.get('progress_bar', {}).get('progress_message', 'Processing complete')
-            else:
-                regex_count = self.config['progress_bar']['count_regex']
-                match_count = re.match(regex_count, text)
-                if match_count:
-                    self.terminal[index]['count'] += 1
-                    self.terminal[index]['modulus_count'] = round(round(self.terminal[index]['count'] / self.terminal[index]['total'], 2) * PROGRESS_BAR_WIDTH)
-                    progress_text = self.determine_progress_text(self.terminal[index]['modulus_count'], self.terminal[index]['count'], self.terminal[index]['total'])
-        return progress_text
-
-    def get_matched_text(self, text):
-        """ return matched text
-        """
-        text_to_print = None
-        text_regex = self.config['text_regex']
-        if re.match(text_regex, text):
-            text_to_print = self.sanitize(text)
-        return text_to_print
-
-    def add_duration(self, index, text, add_duration):
-        """ append duration to text if add duration and text is not None
-        """
-        text_to_print = text
-        if add_duration and text_to_print is not None:
-            duration = self.durations.get(str(index), '')
-            text_to_print += f" - {duration}"
-        return text_to_print
-
-    def write_line(self, index, text, add_duration=False, force=False):
+    def write_line(self, index, text):
         """ write line at index
         """
-        identifier, identifer_assigned = self.get_identifier(index, text)
-        if self.config.get('progress_bar'):
-            text_to_print = self.get_progress_text(index, text)
-            if not text_to_print and identifer_assigned:
-                # ensure id is written to terminal when it is assigned
-                text_to_print = ''
-        elif self.config.get('text_regex'):
-            text_to_print = self.get_matched_text(text)
-        else:
-            text_to_print = self.sanitize(text)
+        self.terminal[index].match(text)
+        self.write(index)
 
-        text_to_print = self.add_duration(index, text_to_print, add_duration)
-
-        id_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{identifier}{Style.RESET_ALL}"
-        self.write(index, id_to_print, text_to_print, force=force)
-
-    def write(self, index, id_to_print, text_to_print, force=False):
-        """ move to index and write identifier and text
+    def write(self, index, force=False):
+        """ move to index and print terminal line at index
         """
         if sys.stderr.isatty() or force:
             move_char = self.get_move_char(index)
-            if text_to_print is None:
-                print(move_char, file=sys.stderr)
-            else:
-                self.terminal[index]['text'] = text_to_print
-                print(f'{move_char}{CLEAR_EOL}', end='', file=sys.stderr)
-                index_to_print = f"{Style.BRIGHT + Fore.YELLOW + Back.BLACK}{self.terminal[index]['index']}{Style.RESET_ALL}"
-                print(f"{index_to_print}: {text_to_print} {id_to_print}", file=sys.stderr)
+            print(f'{move_char}{CLEAR_EOL}', end='', file=sys.stderr)
+            print(self.terminal[index], file=sys.stderr)
             sys.stderr.flush()
             self.current += 1
 
@@ -208,11 +102,7 @@ class Terminal():
         """ reset termnal index
         """
         logger.debug(f'resetting terminal at index {index}')
-        self.terminal[index]['text'] = ''
-        if self.config.get('progress_bar'):
-            self.terminal[index]['count'] = 0
-            self.terminal[index]['modulus_count'] = 0
-            self.terminal[index]['total'] = None
+        self.terminal[index].reset()
 
     def get_move_char(self, index):
         """ return char to move to index
@@ -242,19 +132,10 @@ class Terminal():
         """ write lines to terminal
         """
         logger.debug('writing terminal')
-        for index, item in enumerate(self.terminal):
-            self.write_line(index, item['text'], add_duration=add_duration, force=force)
-
-    def sanitize(self, text):
-        """ sanitize text
-        """
-        if text:
-            text = text.splitlines()[0]
-            if len(text) > MAX_CHARS:
-                text = f'{text[0:MAX_CHARS - 3]}...'
-            else:
-                text = text.ljust(MAX_CHARS)
-        return text
+        for index, _ in enumerate(self.terminal):
+            if add_duration:
+                self.terminal[index].duration = self.durations.get(str(index))
+            self.write(index, force=force)
 
     def show_cursor(self):
         """ show cursor
@@ -267,21 +148,3 @@ class Terminal():
         """
         if sys.stderr.isatty():
             print(HIDE_CURSOR, end='', file=sys.stderr)
-
-    def determine_progress_text(self, modulus_count, count, total):
-        """ determine progress bar text
-        """
-        max_digits = self.config['progress_bar'].get('max_digits', MAX_DIGITS)
-        if total:
-            percentage = str(round((count / total) * 100))
-            indicator = f'{count}/{total}'
-        else:
-            percentage = '0'
-            indicator = '#/#'
-        percentage = percentage.rjust(3)
-        indicator_padding = max_digits * 2 + 1  # 2 sets of digits and 1 for the divider
-        indicator = indicator.ljust(indicator_padding)
-        progress = PROGRESS_TICKER * modulus_count
-        padding = ' ' * (PROGRESS_BAR_WIDTH - modulus_count)
-        progress_text = f"Processing |{progress}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {indicator}"
-        return progress_text

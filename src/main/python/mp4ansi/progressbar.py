@@ -34,6 +34,7 @@ class ProgressBar(object):
 
         self.message = message
         self.complete = False
+        self.duration = None
 
         self.index = index
         self.alias = ''
@@ -126,13 +127,21 @@ class ProgressBar(object):
                 self.count += 1
         return match
 
+    def _get_complete(self):
+        """ return completed message
+        """
+        progress = 'Processing complete'
+        if self.message:
+            progress = self.message
+        if self.duration:
+            progress = f'{progress} - {self.duration}'
+        return progress
+
     def _get_progress(self):
         """ return progress text
         """
         if self.complete:
-            progress = 'Processing complete'
-            if self.message:
-                progress = self.message
+            progress = self._get_complete()
         else:
             if self.total:
                 _percentage = str(round((self.count / self.total) * 100))

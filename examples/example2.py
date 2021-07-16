@@ -18,7 +18,8 @@ config = {
     'progress_bar': {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',
-        'progress_message': 'Finished processing names'
+        'progress_message': 'Finished processing names',
+        'max_digits': 3
     }
 }
 print('Procesing names...')

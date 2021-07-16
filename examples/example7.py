@@ -12,10 +12,10 @@ def do_work(*args):
         logger.debug('RESET')
 
         last_name = names.get_last_name()
-        logger.debug(f'processor is [{str(total_names).zfill(2)}] {last_name}')
+        logger.debug(f'processor is {last_name}')
         total_names += 1
 
-        total = random.randint(50, 125)
+        total = random.randint(50, 325)
         logger.debug(f'processing total of {total}')
         for _ in range(total):
             logger.debug(f'processed {names.get_full_name()}')
@@ -28,7 +28,8 @@ config = {
     'progress_bar': {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',
-        'progress_message': 'Finished processing names'
+        'progress_message': 'Finished processing names',
+        'max_digits': 3
     }
 }
 print('Procesing names...')
