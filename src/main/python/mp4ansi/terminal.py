@@ -4,6 +4,7 @@ import logging
 from colorama import init as colorama_init
 from colorama import Cursor
 from mp4ansi.progressbar import ProgressBar
+from mp4ansi.statusline import StatusLine
 
 logger = logging.getLogger(__name__)
 
@@ -74,13 +75,26 @@ class Terminal():
             terminal.append(progress_bar)
         return terminal
 
+    def create_status_lines(self, lines):
+        """ create return list of status lines
+        """
+        regex = {}
+        regex['text'] = self.config.get('text_regex')
+        fill = {}
+        fill['max_index'] = lines
+        terminal = []
+        for index in range(lines):
+            status_line = StatusLine(index, fill=fill, regex=regex)
+            terminal.append(status_line)
+        return terminal
+
     def create(self, number_of_lines):
         """ return list of dictionaries representing terminal
         """
         logger.debug('creating terminal')
         if 'progress_bar' in self.config:
             return self.create_progress_bars(number_of_lines)
-        # return self.create_terminal_lines(number_of_lines)
+        return self.create_status_lines(number_of_lines)
 
     def write(self, index, force=False):
         """ move to index and print terminal line at index
