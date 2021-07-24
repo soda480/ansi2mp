@@ -22,7 +22,7 @@ class StatusLine(object):
         """
         logger.debug('executing StatusLine constructor')
         colorama_init()
-        self.fill = self._get_fill(fill)
+        self.fill = StatusLine._get_fill(fill)
         if not regex:
             regex = {}
         self.text = ''
@@ -53,11 +53,12 @@ class StatusLine(object):
         if regex:
             match = re.match(regex, text)
             if match:
-                self.text = self._sanitize(text)
+                self.text = StatusLine._sanitize(text)
         else:
-            self.text = self._sanitize(text)
+            self.text = StatusLine._sanitize(text)
 
-    def _sanitize(self, text):
+    @staticmethod
+    def _sanitize(text):
         """ sanitize text
         """
         if text:
@@ -68,7 +69,8 @@ class StatusLine(object):
                 text = text.ljust(MAX_CHARS)
         return text
 
-    def _get_fill(self, data):
+    @staticmethod
+    def _get_fill(data):
         """ return fill dictionary derived from data values
         """
         fill = {}

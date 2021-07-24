@@ -25,7 +25,7 @@ class ProgressBar(object):
         logger.debug('executing ProgressBar constructor')
         colorama_init()
 
-        self.fill = self._get_fill(fill)
+        self.fill = ProgressBar._get_fill(fill)
 
         if not regex:
             regex = {}
@@ -160,7 +160,8 @@ class ProgressBar(object):
             progress = f"Processing |{bar}{padding}| {Style.BRIGHT}{percentage}%{Style.RESET_ALL} {fraction}"
         return progress
 
-    def _get_fill(self, data):
+    @staticmethod
+    def _get_fill(data):
         """ return fill dictionary derived from data values
         """
         fill = {}
