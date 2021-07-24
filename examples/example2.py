@@ -4,9 +4,8 @@ import names, random, logging
 logger = logging.getLogger(__name__)
 
 def do_work(*args):
-    last_name = names.get_last_name()
-    logger.debug(f'processor is {last_name}')
-    total = random.randint(50, 125)
+    logger.debug(f'processor is {names.get_last_name()}')
+    total = random.randint(50, 100)
     logger.debug(f'processing total of {total}')
     for _ in range(total):
         logger.debug(f'processed {names.get_full_name()}')
@@ -19,7 +18,7 @@ config = {
         'total': r'^processing total of (?P<value>\d+)$',
         'count_regex': r'^processed (?P<value>.*)$',
         'progress_message': 'Finished processing names',
-        'max_total': 125
+        'max_total': 100
     }
 }
 print('Procesing names...')

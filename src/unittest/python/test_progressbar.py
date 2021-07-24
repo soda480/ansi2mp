@@ -124,6 +124,18 @@ class TestProgressBar(unittest.TestCase):
         match_count_patch.assert_called_once_with(text)
 
     @patch('mp4ansi.progressbar.colorama_init')
+    @patch('mp4ansi.progressbar.ProgressBar._match_count', return_value=False)
+    @patch('mp4ansi.progressbar.ProgressBar._match_alias', return_value=False)
+    @patch('mp4ansi.progressbar.ProgressBar._match_total', return_value=False)
+    def test__match_Should_CallExpected_When_CalledNoMatch(self, match_total_patch, match_alias_patch, match_count_patch, *patches):
+        pbar = ProgressBar(0)
+        text = '--some-text--'
+        pbar.match(text)
+        match_total_patch.assert_called_once_with(text)
+        match_alias_patch.assert_called_once_with(text)
+        match_count_patch.assert_called_once_with(text)
+
+    @patch('mp4ansi.progressbar.colorama_init')
     def test__match_total_Should_ReturnMatchAndSetExpected_When_TotalIsNoneAndMatch(self, *patches):
         pbar = ProgressBar(0, regex={'total': r'^total is: (?P<value>\d+)$'})
         text = 'total is: 100'

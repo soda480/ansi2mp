@@ -92,6 +92,15 @@ class TestStatusLine(unittest.TestCase):
     @patch('mp4ansi.statusline.colorama_init')
     @patch('mp4ansi.statusline.StatusLine._get_fill')
     @patch('mp4ansi.statusline.StatusLine._sanitize')
+    def test__match_Should_NotSetText_When_RegexNoMatch(self, sanitize_patch, *patches):
+        status_line = StatusLine(0, regex={'text': 'match this'})
+        status_line.text = 'something'
+        status_line.match('hello world')
+        self.assertEqual(status_line.text, 'something')
+
+    @patch('mp4ansi.statusline.colorama_init')
+    @patch('mp4ansi.statusline.StatusLine._get_fill')
+    @patch('mp4ansi.statusline.StatusLine._sanitize')
     def test__match_Should_SetText_When_NoRegex(self, sanitize_patch, *patches):
         status_line = StatusLine(0)
         status_line.match('hello world')
