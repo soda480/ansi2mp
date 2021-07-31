@@ -72,7 +72,7 @@ class Terminal():
         terminal = []
         message = self.config['progress_bar'].get('progress_message')
         for index in range(lines):
-            progress_bar = ProgressBar(index, total=total, fill=fill, regex=regex, message=message)
+            progress_bar = ProgressBar(index, total=total, fill=fill, regex=regex, message=message, aware=False)
             terminal.append(progress_bar)
         return terminal
 

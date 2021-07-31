@@ -1,4 +1,6 @@
 import re
+import sys
+import cursor
 import logging
 
 from colorama import init as colorama_init
@@ -13,18 +15,20 @@ TICKER = chr(9632)  # ■
 PROGRESS_WIDTH = 50
 ALIAS_WIDTH = 100
 FILL = 2
+CLEAR_EOL = '\033[K'
 
 
 class ProgressBar(object):
     """ Progress Bar implementation
     """
 
-    def __init__(self, index, total=None, fill=None, regex=None, message=None):
+    def __init__(self, index=None, total=None, fill=None, regex=None, message=None, aware=True):
         """ class constructor
         """
         logger.debug('executing ProgressBar constructor')
         colorama_init()
 
+        self.aware = aware
         self.fill = ProgressBar._get_fill(fill)
 
         if not regex:
@@ -38,26 +42,29 @@ class ProgressBar(object):
         self.duration = None
 
         self.index = index
-        self.alias = ''
-        self.total = total
         self._modulus_count = 0
         self._reset = 0
-        # avoid __setattr__ for setting count value
+        # avoid __setattr__ for setting count total alias
+        self.__dict__['alias'] = ''
+        self.__dict__['total'] = total
         self.__dict__['count'] = 0
 
     def __str__(self):
         """ return string interpretation of class instance
         """
-        index_fill = self.fill['index']
         bright_yellow = Style.BRIGHT + Fore.YELLOW + Back.BLACK
-        index = f"{bright_yellow}{str(self.index).zfill(index_fill)}{Style.RESET_ALL}"
+        index = ''
+        if self.index is not None:
+            index_fill = self.fill['index']
+            _index = f"{bright_yellow}{str(self.index).zfill(index_fill)}{Style.RESET_ALL}"
+            index = f'{_index}: '
         alias = f"{bright_yellow}{self.alias}{Style.RESET_ALL}"
         progress = self._get_progress()
         completed = ''
         if self._completed and self.show_completed:
             completed_fill = self.fill['completed']
             completed = f'{bright_yellow}[{str(self._completed).zfill(completed_fill)}] '
-        return f"{index}: {progress} {completed}{alias}"
+        return f"{index}{progress} {completed}{alias}"
 
     def __setattr__(self, name, value):
         """ set class instance attributes
@@ -67,6 +74,34 @@ class ProgressBar(object):
         super(ProgressBar, self).__setattr__(name, value)
         if name == 'count':
             self._modulus_count = round(round(self.count / self.total, 2) * PROGRESS_WIDTH)
+        if self.aware:
+            self._print(name)
+
+    def __enter__(self):
+        """ hide cursor if aware and stderr is attached to tty
+        """
+        if self.aware and sys.stderr.isatty():
+            cursor.hide()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """ show cursor if aware and stderr is attached to tty
+        """
+        if self.aware and sys.stderr.isatty():
+            cursor.show()
+
+    def _print(self, changed_attribute):
+        """ print progress bar on certain conditions
+            sys.stderr is attached to a tty
+            changed_attribute is either count or total
+        """
+        if not sys.stderr.isatty():
+            return
+        if changed_attribute in ['count', 'total']:
+            if changed_attribute == 'count':
+                print(f'{Cursor.UP(0)}{CLEAR_EOL}', end='', file=sys.stderr)
+            print(self, file=sys.stderr)
+            sys.stderr.flush()
 
     def reset(self):
         """ reset progress bar
