@@ -1,5 +1,6 @@
 #   -*- coding: utf-8 -*-
 import sys
+import cursor
 import logging
 from colorama import init as colorama_init
 from colorama import Cursor
@@ -71,7 +72,7 @@ class Terminal():
         terminal = []
         message = self.config['progress_bar'].get('progress_message')
         for index in range(lines):
-            progress_bar = ProgressBar(index, total=total, fill=fill, regex=regex, message=message)
+            progress_bar = ProgressBar(index, total=total, fill=fill, regex=regex, message=message, aware=False)
             terminal.append(progress_bar)
         return terminal
 
@@ -155,10 +156,10 @@ class Terminal():
         """ show cursor
         """
         if sys.stderr.isatty():
-            print(SHOW_CURSOR, end='', file=sys.stderr)
+            cursor.show()
 
     def hide_cursor(self):
         """ hide cursor
         """
         if sys.stderr.isatty():
-            print(HIDE_CURSOR, end='', file=sys.stderr)
+            cursor.hide()

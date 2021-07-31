@@ -7,11 +7,7 @@
 [![python](https://img.shields.io/badge/python-3.6-teal)](https://www.python.org/downloads/)
 
 
-A simple ANSI-based terminal emulator that provides multi-processing capabilities. MP4ansi will scale execution of a specified function across multiple background processes, where each process is mapped to specific line on the terminal. As the function executes its log messages will automatically be written to the respective line on the terminal. The number of processes along with the arguments to provide each process is specified as a list of dictionaries. The number of elements in the list will dictate the total number of processes to execute (as well as the number of lines in the terminal). The result of each function is written to the respective dictionary element and can be interogated upon completion.
-
-MPansi also supports representing the function execution as a progress bar, you will need to provide an optional config argument containing a dictionary for how to query for the total and count (via regular expressions), see the [examples](https://github.com/soda480/mp4ansi/tree/master/examples) for more detail.
-
-MP4ansi is a subclass of `mpmq`, see the [mpmq](https://pypi.org/project/mpmq/) for more information.
+A simple ANSI-based terminal that provides various capabilities for showing off and/or scaling out your programs execution; a Terminal, a ProgressBar and MP4ansi - an abstraction of multiprocessing that leverages both the Terminal and ProgressBar. See the [examples](https://github.com/soda480/mp4ansi/tree/master/examples) for more detail.
 
 ## Installation ##
 ```bash
@@ -24,7 +20,11 @@ Various [examples](https://github.com/soda480/mp4ansi/tree/master/examples) are 
 
 ### `MP4ansi`
 
-A simple mp4ansi example:
+MP4ansi will scale execution of a specified function across multiple background processes, where each process is mapped to specific line on the terminal. As the function executes its log messages will automatically be written to the respective line on the terminal. The number of processes along with the arguments to provide each process is specified as a list of dictionaries. The number of elements in the list will dictate the total number of processes to execute (as well as the number of lines in the terminal). The result of each function is written to the respective dictionary element and can be interogated upon completion. 
+
+MP4ansi is a subclass of `mpmq`, see the [mpmq](https://pypi.org/project/mpmq/) for more information.
+
+Here is a simple example:
 
 ```python
 from mp4ansi import MP4ansi
@@ -103,6 +103,25 @@ terminal.show_cursor()
 
 Executing the code above ([example5](https://github.com/soda480/mp4ansi/tree/master/examples/example5.py)) results in the following:
 ![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/example5.gif)
+
+### `ProgressBar`
+
+The package also exposes a `ProgressBar` class that can be used to display your function's execution as a progress bar. Use it as a context manager, and simply set the `.total` and `.count` attributes accordingly. Here is an example:
+```python
+import random, time
+from mp4ansi import ProgressBar
+
+with ProgressBar() as pb:
+    pb.alias = 'Super 80s'
+    pb.total = random.randint(50, 100)
+    for _ in range(pb.total):
+        pb.count += 1
+        # simulate work
+        time.sleep(.09)
+```
+
+Executing the code above ([example8](https://github.com/soda480/mp4ansi/tree/master/examples/example8.py)) results in the following:
+![example](https://raw.githubusercontent.com/soda480/mp4ansi/master/docs/images/example8.gif)
 
 ## Development ##
 

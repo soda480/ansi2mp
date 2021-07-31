@@ -1,2 +1,3 @@
 mpmq
+cursor
 colorama
