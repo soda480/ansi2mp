@@ -32,12 +32,12 @@ logger = logging.getLogger(__name__)
 class TestTerminal(unittest.TestCase):
 
     def setUp(self):
-        """
+        """ setup
         """
         pass
 
     def tearDown(self):
-        """
+        """ tear down
         """
         pass
 
@@ -205,33 +205,33 @@ class TestTerminal(unittest.TestCase):
         self.assertEqual(term.current, 7)
 
     @patch('mp4ansi.terminal.sys.stderr')
-    @patch('builtins.print')
-    def test__hide_cursor_Should_CallExpected_When_Called(self, print_patch, stderr_patch, *patches):
+    @patch('mp4ansi.terminal.cursor')
+    def test__hide_cursor_Should_CallExpected_When_Called(self, cursor_patch, stderr_patch, *patches):
         stderr_patch.isatty.return_value = True
         term = Terminal(3, create=False)
         term.hide_cursor()
-        print_patch.assert_called_once_with(HIDE_CURSOR, end='', file=stderr_patch)
+        cursor_patch.hide.assert_called_once_with()
 
     @patch('mp4ansi.terminal.sys.stderr')
-    @patch('builtins.print')
-    def test__hide_cursor_Should_CallExpected_When_NoAtty(self, print_patch, stderr_patch, *patches):
+    @patch('mp4ansi.terminal.cursor')
+    def test__hide_cursor_Should_CallExpected_When_NoAtty(self, cursor_patch, stderr_patch, *patches):
         stderr_patch.isatty.return_value = False
         term = Terminal(3, create=False)
         term.hide_cursor()
-        print_patch.assert_not_called()
+        cursor_patch.hide.assert_not_called()
 
     @patch('mp4ansi.terminal.sys.stderr')
-    @patch('builtins.print')
-    def test__show_cursor_Should_CallExpected_When_Called(self, print_patch, stderr_patch, *patches):
+    @patch('mp4ansi.terminal.cursor')
+    def test__show_cursor_Should_CallExpected_When_Called(self, cursor_patch, stderr_patch, *patches):
         stderr_patch.isatty.return_value = True
         term = Terminal(3, create=False)
         term.show_cursor()
-        print_patch.assert_called_once_with(SHOW_CURSOR, end='', file=stderr_patch)
+        cursor_patch.show.assert_called_once_with()
 
     @patch('mp4ansi.terminal.sys.stderr')
-    @patch('builtins.print')
-    def test__show_cursor_Should_CallExpected_When_NoAtty(self, print_patch, stderr_patch, *patches):
+    @patch('mp4ansi.terminal.cursor')
+    def test__show_cursor_Should_CallExpected_When_NoAtty(self, cursor_patch, stderr_patch, *patches):
         stderr_patch.isatty.return_value = False
         term = Terminal(3, create=False)
         term.show_cursor()
-        print_patch.assert_not_called()
+        cursor_patch.show.assert_not_called()
