@@ -27,18 +27,22 @@ def do_work(*args):
 
     return total
 
-process_data = [{} for item in range(8)]
-config = {
-    'id_regex': r'^processor is (?P<value>.*)$',
-    'progress_bar': {
-        'total': r'^processing total of (?P<value>\d+)$',
-        'count_regex': r'^processed (?P<value>.*)$',
-        'progress_message': 'Finished processing names',
-        'max_total': TOTAL_ITEMS,
-        'max_completed': TOTAL_NAMES,
-        'wtf': True
+def main():
+    process_data = [{} for item in range(8)]
+    config = {
+        'id_regex': r'^processor is (?P<value>.*)$',
+        'progress_bar': {
+            'total': r'^processing total of (?P<value>\d+)$',
+            'count_regex': r'^processed (?P<value>.*)$',
+            'progress_message': 'Finished processing names',
+            'max_total': TOTAL_ITEMS,
+            'max_completed': TOTAL_NAMES,
+            'wtf': True
+        }
     }
-}
-print('Procesing names...')
-MP4ansi(function=do_work, process_data=process_data, config=config).execute()
-print(f"Total names processed {sum([item['result'] for item in process_data])}")
+    print('Procesing names...')
+    MP4ansi(function=do_work, process_data=process_data, config=config).execute()
+    print(f"Total names processed {sum([item['result'] for item in process_data])}")
+
+if __name__ == '__main__':
+    main()
