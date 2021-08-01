@@ -4,7 +4,7 @@ import cursor
 import logging
 from colorama import init as colorama_init
 from colorama import Cursor
-from mp4ansi.progressbar import ProgressBar
+from progress1bar import ProgressBar
 from mp4ansi.statusline import StatusLine
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ class Terminal():
         terminal = []
         message = self.config['progress_bar'].get('progress_message')
         for index in range(lines):
-            progress_bar = ProgressBar(index, total=total, fill=fill, regex=regex, message=message, aware=False)
+            progress_bar = ProgressBar(index, total=total, fill=fill, regex=regex, completed_message=message, aware=False)
             terminal.append(progress_bar)
         return terminal
 
