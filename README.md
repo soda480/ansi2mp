@@ -38,10 +38,14 @@ def do_work(*args):
         logger.debug(f'processed {names.get_full_name()}')
     return total
 
-process_data = [{} for item in range(8)]
-print('Procesing names...')
-MP4ansi(function=do_work, process_data=process_data).execute()
-print(f"Total names processed {sum([item['result'] for item in process_data])}")
+def main():
+    process_data = [{} for item in range(8)]
+    print('Procesing names...')
+    MP4ansi(function=do_work, process_data=process_data).execute()
+    print(f"Total names processed {sum([item['result'] for item in process_data])}")
+
+if __name__ == '__main__':
+    main()
 ```
 
 Executing the code above ([example1](https://github.com/soda480/mp4ansi/tree/master/examples/example1.py)) results in the following:
@@ -64,16 +68,20 @@ def do_work(*args):
         logger.debug(f'processed {names.get_full_name()}')
     return total
 
-process_data = [{} for item in range(8)]
-config = {
-    'id_regex': r'^processor is (?P<value>.*)$',
-    'progress_bar': {
-        'total': r'^processing total of (?P<value>\d+)$',
-        'count_regex': r'^processed (?P<value>.*)$',
-        'progress_message': 'Finished processing names'}}
-print('Procesing names...')
-MP4ansi(function=do_work, process_data=process_data, config=config).execute()
-print(f"Total names processed {sum([item['result'] for item in process_data])}")
+def main():
+    process_data = [{} for item in range(8)]
+    config = {
+        'id_regex': r'^processor is (?P<value>.*)$',
+        'progress_bar': {
+            'total': r'^processing total of (?P<value>\d+)$',
+            'count_regex': r'^processed (?P<value>.*)$',
+            'progress_message': 'Finished processing names'}}
+    print('Procesing names...')
+    MP4ansi(function=do_work, process_data=process_data, config=config).execute()
+    print(f"Total names processed {sum([item['result'] for item in process_data])}")
+
+if __name__ == '__main__':
+    main()
 ```
 
 Executing the code above ([example2](https://github.com/soda480/mp4ansi/tree/master/examples/example2.py)) results in the following:
@@ -87,18 +95,22 @@ from mp4ansi import Terminal
 from essential_generators import DocumentGenerator
 import time, random
 
-print('generating random sentences...')
-count = 15
-docgen = DocumentGenerator()
-terminal = Terminal(count)
-terminal.write_lines()
-terminal.hide_cursor()
-for _ in range(800):
-    index = random.randint(0, count - 1)
-    terminal.write_line(index, docgen.sentence())
-    time.sleep(.01)
-terminal.write_lines(force=True)
-terminal.show_cursor()
+def main():
+    print('generating random sentences...')
+    count = 15
+    docgen = DocumentGenerator()
+    terminal = Terminal(count)
+    terminal.write_lines()
+    terminal.hide_cursor()
+    for _ in range(800):
+        index = random.randint(0, count - 1)
+        terminal.write_line(index, docgen.sentence())
+        time.sleep(.01)
+    terminal.write_lines(force=True)
+    terminal.show_cursor()
+
+if __name__ == '__main__':
+    main()
 ```
 
 Executing the code above ([example5](https://github.com/soda480/mp4ansi/tree/master/examples/example5.py)) results in the following:

@@ -11,16 +11,20 @@ def do_work(*args):
         logger.debug(f'processed {names.get_full_name()}')
     return total
 
-process_data = [{} for item in range(8)]
-config = {
-    'id_regex': r'^processor is (?P<value>.*)$',
-    'progress_bar': {
-        'total': r'^processing total of (?P<value>\d+)$',
-        'count_regex': r'^processed (?P<value>.*)$',
-        'progress_message': 'Finished processing names',
-        'max_total': 100
+def main():
+    process_data = [{} for item in range(8)]
+    config = {
+        'id_regex': r'^processor is (?P<value>.*)$',
+        'progress_bar': {
+            'total': r'^processing total of (?P<value>\d+)$',
+            'count_regex': r'^processed (?P<value>.*)$',
+            'progress_message': 'Finished processing names',
+            'max_total': 100
+        }
     }
-}
-print('Procesing names...')
-MP4ansi(function=do_work, process_data=process_data, config=config).execute()
-print(f"Total names processed {sum([item['result'] for item in process_data])}")
+    print('Procesing names...')
+    MP4ansi(function=do_work, process_data=process_data, config=config).execute()
+    print(f"Total names processed {sum([item['result'] for item in process_data])}")
+
+if __name__ == '__main__':
+    main()

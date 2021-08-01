@@ -16,7 +16,7 @@ name = 'mp4ansi'
 authors = [Author('Emilio Reyes', 'soda480@gmail.com')]
 summary = 'A simple ANSI-based terminal emulator that provides multi-processing capabilities.'
 url = 'https://github.com/soda480/mp4ansi'
-version = '0.3.5'
+version = '0.3.6'
 default_task = [
     'clean',
     'analyze',
