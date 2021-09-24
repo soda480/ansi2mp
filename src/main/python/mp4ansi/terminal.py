@@ -119,7 +119,7 @@ class Terminal():
         logger.debug('writing terminal')
         for index, _ in enumerate(self.terminal):
             if add_duration:
-                self.terminal[index].duration = self.durations.get(str(index))
+                self.terminal[index].duration = self.durations.get(index, {}).get('duration')
             self.write(index, force=force)
 
     def reset(self, index):

@@ -2,9 +2,9 @@
 [![GitHub Workflow Status](https://github.com/soda480/mp4ansi/workflows/build/badge.svg)](https://github.com/soda480/mp4ansi/actions)
 [![Code Coverage](https://codecov.io/gh/soda480/mp4ansi/branch/main/graph/badge.svg?token=6NTX6LSP7Q)](https://codecov.io/gh/soda480/mp4ansi)
 [![Code Grade](https://www.code-inspector.com/project/20694/status/svg)](https://frontend.code-inspector.com/project/20694/dashboard)
-[![vulnerabilities](https://img.shields.io/badge/vulnerabilities-None-green)](https://pypi.org/project/bandit/)
+[![vulnerabilities](https://img.shields.io/badge/vulnerabilities-None-brightgreen)](https://pypi.org/project/bandit/)
 [![PyPI version](https://badge.fury.io/py/mp4ansi.svg)](https://badge.fury.io/py/mp4ansi)
-[![python](https://img.shields.io/badge/python-3.6-teal)](https://www.python.org/downloads/)
+[![python](https://img.shields.io/badge/python-3.9-teal)](https://www.python.org/downloads/)
 
 
 A simple ANSI-based terminal that provides various capabilities for showing off and/or scaling out your programs execution. MP4ansi is an abstraction of multiprocessing that leverages both the Terminal and ProgressBar. See the [examples](https://github.com/soda480/mp4ansi/tree/master/examples) for more detail.
@@ -132,7 +132,7 @@ Run the Docker container:
 docker container run \
 --rm \
 -it \
--v $PWD:/mp4ansi \
+-v $PWD:/code \
 mp4ansi:latest \
 /bin/sh
 ```
