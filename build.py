@@ -8,9 +8,9 @@ use_plugin('python.install_dependencies')
 use_plugin('python.flake8')
 use_plugin('python.coverage')
 use_plugin('python.distutils')
-use_plugin('pypi:pybuilder_radon', '~=0.1.2')
-use_plugin('pypi:pybuilder_bandit', '~=0.1.3')
-use_plugin('pypi:pybuilder_anybadge', '~=0.1.6')
+use_plugin('pypi:pybuilder_radon')
+use_plugin('pypi:pybuilder_bandit')
+use_plugin('pypi:pybuilder_anybadge')
 
 name = 'mp4ansi'
 authors = [Author('Emilio Reyes', 'soda480@gmail.com')]
@@ -20,6 +20,7 @@ version = '0.4.0'
 default_task = [
     'clean',
     'analyze',
+    'publish',
     'radon',
     'bandit',
     'anybadge',
@@ -52,7 +53,7 @@ def set_properties(project):
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
