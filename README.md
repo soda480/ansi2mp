@@ -134,7 +134,7 @@ docker container run \
 -it \
 -v $PWD:/code \
 mp4ansi:latest \
-/bin/sh
+/bin/bash
 ```
 
 Execute the build:

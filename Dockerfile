@@ -4,5 +4,4 @@ ENV PYTHONDONTWRITEBYTECODE 1
 WORKDIR /code
 COPY . /code/
 RUN pip install pybuilder names essential_generators
-RUN pyb install_dependencies
 RUN pyb install
