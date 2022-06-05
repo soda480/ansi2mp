@@ -15,7 +15,7 @@ name = 'mp4ansi'
 authors = [Author('Emilio Reyes', 'soda480@gmail.com')]
 summary = 'A simple ANSI-based terminal emulator that provides multi-processing capabilities.'
 url = 'https://github.com/soda480/mp4ansi'
-version = '0.4.0'
+version = '0.4.1'
 default_task = [
     'clean',
     'analyze',
@@ -37,7 +37,7 @@ def set_properties(project):
     project.set_property('flake8_include_scripts', True)
     project.set_property('flake8_include_test_sources', True)
     project.set_property('flake8_ignore', 'F401, E501')  # W503, F401')
-    project.build_depends_on_requirements('requirements-build.txt')
+    project.build_depends_on('mock')
     project.depends_on_requirements('requirements.txt')
     project.set_property('distutils_readme_description', True)
     project.set_property('distutils_description_overwrite', True)
