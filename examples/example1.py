@@ -13,8 +13,8 @@ def do_work(*args):
 def main():
     process_data = [{} for item in range(8)]
     print('Procesing names...')
-    MP4ansi(function=do_work, process_data=process_data).execute()
-    print(f"Total names processed {sum([item['result'] for item in process_data])}")
+    results = MP4ansi(function=do_work, process_data=process_data).execute()
+    print(f"Total names processed {sum(result for result in results)}")
 
 if __name__ == '__main__':
     main()

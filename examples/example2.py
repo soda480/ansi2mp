@@ -23,8 +23,8 @@ def main():
         }
     }
     print('Procesing names...')
-    MP4ansi(function=do_work, process_data=process_data, config=config).execute()
-    print(f"Total names processed {sum([item['result'] for item in process_data])}")
+    results = MP4ansi(function=do_work, process_data=process_data, config=config).execute()
+    print(f"Total names processed {sum(result for result in results)}")
 
 if __name__ == '__main__':
     main()

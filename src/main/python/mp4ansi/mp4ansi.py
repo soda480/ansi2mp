@@ -22,7 +22,7 @@ class MP4ansi(MPmq):
         config = kwargs.pop('config', None)
         # call parent constructor
         super(MP4ansi, self).__init__(*args, **kwargs)
-        self.terminal = Terminal(len(self.process_data), config=config, durations=self.finished_processes)
+        self.terminal = Terminal(len(self.process_data), config=config, durations=self.processes)
 
     def get_message(self):
         """ return message from top of message queue
@@ -42,7 +42,7 @@ class MP4ansi(MPmq):
                 logger.debug(f'unable to match offset in message {message}')
         return message
 
-    def process_non_control_message(self, offset, message):
+    def process_message(self, offset, message):
         """ write message to terminal at offset
             override parent class method
         """

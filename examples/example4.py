@@ -73,11 +73,11 @@ def main():
     # mp4ansi = MPcontroller(function=check_primes, process_data=process_data)
     mp4ansi = MP4ansi(function=check_primes, process_data=process_data, config=config)
     print('Computing prime numbers...')
-    mp4ansi.execute()
+    results = mp4ansi.execute()
 
     total_primes = 0
-    for process in process_data:
-        total_primes += len(process['result'])
+    for result in results:
+        total_primes += len(result)
     print(f'Total number of primes is: {total_primes}')
 
 

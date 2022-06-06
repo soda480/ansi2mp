@@ -53,10 +53,10 @@ def do_something(*args):
     return total
 
 
-def get_total_processed(process_data):
+def get_total_processed(results):
     total = 0
-    for process in process_data:
-        total += process['result']
+    for result in results:
+        total += result
     return total
 
 
@@ -74,11 +74,11 @@ def main(count):
 
     print('Processing...')
     mp4ansi = MP4ansi(function=do_something, process_data=process_data, config=config)
-    mp4ansi.execute()
+    results = mp4ansi.execute()
     # print(mp4ansi.terminal.move_up(0), end='')
     # mp4ansi = MP4ansi(function=do_something, process_data=process_data, config=config)
     # mp4ansi.execute()
-    print(f'Total processed: {get_total_processed(process_data)}')
+    print(f'Total processed: {get_total_processed(results)}')
 
 
 if __name__ == '__main__':
