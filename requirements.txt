@@ -1,4 +1,4 @@
 mpmq==0.2.0
 cursor
 colorama
-progress1bar
+progress1bar==0.1.3
