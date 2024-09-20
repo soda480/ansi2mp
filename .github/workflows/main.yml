@@ -9,23 +9,14 @@ on:
     branches:
       - main
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  build-images:
+    strategy:
+      matrix:
+        version: ['3.7', '3.8', '3.9', '3.10']
+    name: Build Python Docker images
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Build Docker image
-      run: |
-        docker image build -t mp4ansi:latest .
-
-    - name: Prepare coverage
-      run: |
-        ID=$(docker create mp4ansi)
-        docker cp $ID:/code/target/reports/mp4ansi_coverage.xml mp4ansi_coverage.xml
-        sed -i -e 's,filename="mp4ansi/,filename="src/main/python/mp4ansi/,g' mp4ansi_coverage.xml
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: mp4ansi_coverage.xml
+      - uses: actions/checkout@v4
+      - name: build mp4ansi ${{ matrix.version }} image
+        run:
+          docker image build --build-arg PYTHON_VERSION=${{ matrix.version }} -t mp4ansi:${{ matrix.version }} .
